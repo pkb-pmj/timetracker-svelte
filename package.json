@@ -28,5 +28,9 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"kysely": "^0.28.11",
+		"sqlocal": "^0.16.0"
 	}
 }
