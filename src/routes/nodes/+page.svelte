@@ -31,6 +31,6 @@
 	{/each}
 </ul>
 <form>
-	<input type="text" bind:value={newName} />
+	<input type="text" autocapitalize="words" bind:value={newName} />
 	<button type="submit" onclick={addNode} disabled={!newNameValid}>Add node</button>
 </form>
