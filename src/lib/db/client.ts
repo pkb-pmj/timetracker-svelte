@@ -24,4 +24,4 @@ if (browser) {
 	await migrator.migrateToLatest();
 }
 
-export { db, reactiveQuery };
+export { db, reactiveQuery, migrator };
