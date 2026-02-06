@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { db } from '$lib/db';
 
+	let { onPicked }: { onPicked: (id: number) => void } = $props();
+
 	let query = $state('');
 	let debouncedQuery = $state('');
 
@@ -27,7 +29,10 @@
 	<ul>
 		{#each nodes as node (node.id)}
 			<li>
-				<span>{node.name}</span><span>#{node.id}</span>
+				<label>
+					<span>{node.name}</span><span>#{node.id}</span>
+					<button onclick={() => onPicked(node.id)}>Pick</button>
+				</label>
 			</li>
 		{:else}
 			<span>No matching nodes</span>

@@ -35,4 +35,4 @@
 	<input type="text" autocapitalize="words" bind:value={newName} />
 	<button type="submit" onclick={addNode} disabled={!newNameValid}>Add node</button>
 </form>
-<NodePicker />
+<NodePicker onPicked={() => {}} />
