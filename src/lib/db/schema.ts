@@ -11,9 +11,15 @@ export interface Interval {
 	end_time: number | null;
 	start_node_id: number;
 	end_node_id: number | null;
+	sequence_id: number;
+}
+
+export interface Sequence {
+	id: Generated<number>;
 }
 
 export interface DB {
 	nodes: Node;
 	intervals: Interval;
+	sequences: Sequence;
 }
