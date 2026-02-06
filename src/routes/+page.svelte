@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { migrator } from '$lib/db';
-	import { NO_MIGRATIONS } from 'kysely';
-
 	const resetDatabase = async () => {
 		if (!window.confirm('Reset database? All data will be deleted')) return;
-		await migrator.migrateTo(NO_MIGRATIONS);
-		await migrator.migrateToLatest();
-		alert('Database reset!');
+		const root = await navigator.storage.getDirectory();
+		await root.removeEntry('database.sqlite3', { recursive: true });
+		location.reload();
 	};
 </script>
 
