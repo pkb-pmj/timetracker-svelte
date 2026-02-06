@@ -1,4 +1,5 @@
 <script lang="ts">
+	import NodePicker from '$lib/components/NodePicker.svelte';
 	import { db, reactiveQuery } from '$lib/db';
 
 	const nodes = reactiveQuery(db.selectFrom('nodes').selectAll().orderBy('id', 'asc').compile());
@@ -34,3 +35,4 @@
 	<input type="text" autocapitalize="words" bind:value={newName} />
 	<button type="submit" onclick={addNode} disabled={!newNameValid}>Add node</button>
 </form>
+<NodePicker />
