@@ -6,11 +6,10 @@
 
 	const activeSequences = reactiveQuery(
 		db
-			.selectFrom('intervals')
-			.select('sequence_id as id')
-			.where('end_time', 'is', null)
-			.distinct()
-			.orderBy('start_time', 'desc')
+			.selectFrom('sequences')
+			.select('id')
+			.where('sequences.status', '=', SequenceStatus.ACTIVE)
+			.orderBy('id', 'desc')
 			.compile(),
 	);
 
