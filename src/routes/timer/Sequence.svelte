@@ -44,6 +44,14 @@
 			.values({ start_node_id: node_id, start_time: time, sequence_id: id })
 			.execute();
 	}
+
+	async function cancelLastInterval() {
+		await db
+			.deleteFrom('intervals')
+			.where('sequence_id', '=', id)
+			.where('end_time', 'is', null)
+			.execute();
+	}
 </script>
 
 <ul>
@@ -55,4 +63,5 @@
 		</li>
 	{/each}
 </ul>
+<button onclick={cancelLastInterval}>Finish here</button>
 <NodePicker onPicked={moveToNextInterval} />
