@@ -10,6 +10,8 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema
 		.createTable('sequences')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+		// TODO: check constraint?
+		.addColumn('status', 'integer', (col) => col.notNull())
 		.execute();
 
 	await db.schema

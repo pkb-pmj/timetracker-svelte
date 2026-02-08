@@ -1,6 +1,7 @@
 <script lang="ts">
 	import NodePicker from '$lib/components/NodePicker.svelte';
 	import { db, reactiveQuery } from '$lib/db';
+	import { SequenceStatus } from '$lib/db/schema';
 	import Sequence from './Sequence.svelte';
 
 	const activeSequences = reactiveQuery(
@@ -19,7 +20,7 @@
 		await db.transaction().execute(async (trx) => {
 			const { id: sequence_id } = await trx
 				.insertInto('sequences')
-				.defaultValues()
+				.values({ status: SequenceStatus.ACTIVE })
 				.returning('id')
 				.executeTakeFirstOrThrow();
 

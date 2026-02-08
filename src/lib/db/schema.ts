@@ -16,6 +16,12 @@ export interface Interval {
 
 export interface Sequence {
 	id: Generated<number>;
+	status: SequenceStatus;
+}
+
+export enum SequenceStatus {
+	ACTIVE = 1,
+	FINISHED = 2,
 }
 
 export interface DB {
