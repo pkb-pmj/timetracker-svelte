@@ -1,6 +1,7 @@
 <script lang="ts">
 	import NodePicker from '$lib/components/NodePicker.svelte';
 	import { db, reactiveQuery } from '$lib/db';
+	import { formatTime } from '$lib/util';
 
 	interface Props {
 		id: number;
@@ -58,7 +59,9 @@
 	{#each $intervals as interval (interval.id)}
 		<li>
 			<span>
-				{interval.start_name} ({interval.start_time}) -> {interval.end_name} ({interval.end_time})
+				{interval.start_name}
+				{formatTime(interval.start_time)} -> {interval.end_name}
+				{formatTime(interval.end_time)}
 			</span>
 		</li>
 	{/each}
