@@ -75,10 +75,15 @@
 	function onClickOutside(e: MouseEvent) {
 		if (e.target === dialogEl) dialogEl?.close();
 	}
+
+	function onclose() {
+		activeId = null;
+		query = '';
+	}
 </script>
 
 <button onclick={() => dialogEl?.showModal()}>Now at {selected?.name ?? '?'}</button>
-<dialog bind:this={dialogEl} onclick={onClickOutside} onclose={() => (activeId = null)}>
+<dialog bind:this={dialogEl} onclick={onClickOutside} {onclose}>
 	<div class="combobox">
 		<!-- svelte-ignore a11y_autofocus -->
 		<input
