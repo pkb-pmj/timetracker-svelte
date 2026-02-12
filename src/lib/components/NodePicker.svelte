@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { pushState } from '$app/navigation';
+	import { page } from '$app/state';
 	import { db, type Node } from '$lib/db';
 	import type { Selectable } from 'kysely';
 
@@ -76,13 +78,29 @@
 		if (e.target === dialogEl) dialogEl?.close();
 	}
 
+	// TODO: a less hacky way to do this..? And be careful when integrating this with other modals
+	function showModal() {
+		// only push state if it isn't already set to 'NodePicker'
+		// when user opens model, closes, navigates forward and opens modal again,
+		// this prevents duplicate entries and allows closing modal on 1st "back", not 2nd
+		if (page.state.modal !== 'NodePicker') pushState('', { modal: 'NodePicker' });
+		dialogEl?.showModal();
+	}
+
+	$effect(() => {
+		// only close on "back", don't open on "forward"
+		if (page.state.modal !== 'NodePicker') dialogEl?.close();
+	});
+
 	function onclose() {
 		activeId = null;
 		query = '';
+		// update history if closed in other way than navigating back
+		if (page.state.modal === 'NodePicker') history.back();
 	}
 </script>
 
-<button onclick={() => dialogEl?.showModal()}>Now at {selected?.name ?? '?'}</button>
+<button onclick={showModal}>Now at {selected?.name ?? '?'}</button>
 <dialog bind:this={dialogEl} onclick={onClickOutside} {onclose}>
 	<div class="combobox">
 		<!-- svelte-ignore a11y_autofocus -->
