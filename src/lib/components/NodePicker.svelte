@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { db, type Node } from '$lib/db';
 	import type { Selectable } from 'kysely';
+	import type { Attachment } from 'svelte/attachments';
 
 	let { onPicked }: { onPicked: (id: number) => void } = $props();
 
@@ -29,11 +30,12 @@
 	let activeId = $state<number | null>(null);
 	let selected = $state<Selectable<Node> | null>(null);
 
-	$effect(() => {
-		if (activeId === null) return;
+	function scrollIntoView(id: number): Attachment {
 		// make sure active node is visible
-		document.getElementById(activeId.toString())?.scrollIntoView({ block: 'nearest' });
-	});
+		return (el) => {
+			if (activeId === id) el.scrollIntoView({ block: 'nearest' });
+		};
+	}
 
 	$effect(() => {
 		// reset activeId if it was filtered out
@@ -129,6 +131,7 @@
 						e.preventDefault();
 						selectOption(node.id);
 					}}
+					{@attach scrollIntoView(node.id)}
 				>
 					<span class="name">{node.name}</span> <span class="id">#{node.id}</span>
 				</li>
