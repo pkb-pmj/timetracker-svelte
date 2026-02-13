@@ -130,7 +130,7 @@
 						selectOption(node.id);
 					}}
 				>
-					<span>{node.name}</span><span>#{node.id}</span>
+					<span class="name">{node.name}</span> <span class="id">#{node.id}</span>
 				</li>
 			{/each}
 		</ul>
@@ -141,12 +141,13 @@
 	dialog {
 		padding: 0;
 		border: none;
-		border-radius: 16px 16px 0 0;
-		width: 100%;
+		border-radius: 1em 1em 0 0;
+		width: 80%;
 		max-width: 600px;
-		margin: 0 auto;
+		margin: 4em auto;
 		transform: translateY(100%);
 		transition: transform 150ms ease-out;
+		height: calc(100% - 4em);
 	}
 
 	dialog[open] {
@@ -160,9 +161,10 @@
 	.combobox {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		padding: 1em;
-		max-height: 85vh;
+		gap: 0.5em;
+		padding: 0.5em;
+		padding-bottom: 0;
+		height: 100%;
 	}
 
 	input {
@@ -171,32 +173,34 @@
 		z-index: 1;
 		background: white;
 		border-bottom: 1px solid #eee;
-		padding: 10px 12px;
-		border-radius: 8px;
+		padding: 0.5em;
+		border-radius: 0.5em;
 		border: 1px solid #ccc;
 		font-size: 1rem;
 	}
 
-	[role='listbox'] {
-		overflow-y: scroll;
-		padding: 8px 0;
+	ul {
+		flex: 1;
+		overflow-y: auto;
+		padding: 0;
+		padding-bottom: 0.5em;
 		margin: 0;
 		list-style: none;
 	}
 
-	[role='option'] {
-		padding: 8px 12px;
+	li {
+		padding: 0.5em;
 		cursor: pointer;
-		border-radius: 6px;
+		border-radius: 0.5em;
 	}
 
 	/* Mouse hover */
-	[role='option']:hover {
+	li:hover {
 		background: rgba(0, 0, 0, 0.05);
 	}
 
 	/* Active (== selected) (arrow-key focus) */
-	[role='option'][aria-selected='true'] {
+	li[aria-selected='true'] {
 		background: rgba(0, 0, 0, 0.12);
 	}
 
@@ -206,5 +210,10 @@
 
 	button:not(:disabled) {
 		font-weight: 500;
+	}
+
+	span.id {
+		font-size: 0.8rem;
+		color: #888;
 	}
 </style>
