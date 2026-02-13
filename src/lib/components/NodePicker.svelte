@@ -113,6 +113,7 @@
 			aria-activedescendant={activeId !== null ? `option-${activeId}` : undefined}
 			autocomplete="off"
 			placeholder="Search"
+			autocapitalize="words"
 			autofocus
 			onkeydown={onKeyDown}
 			bind:value={query}
