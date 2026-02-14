@@ -135,6 +135,8 @@
 				>
 					<span class="name">{node.name}</span> <span class="id">#{node.id}</span>
 				</li>
+			{:else}
+				<span class="no-elements">No matching options</span>
 			{/each}
 		</ul>
 	</div>
@@ -218,5 +220,12 @@
 	span.id {
 		font-size: 0.8rem;
 		color: #888;
+	}
+
+	span.no-elements {
+		color: #888;
+		font-style: italic;
+		display: block;
+		padding: 0.5rem 1rem;
 	}
 </style>
