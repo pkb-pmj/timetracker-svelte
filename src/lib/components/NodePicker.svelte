@@ -144,13 +144,13 @@
 	dialog {
 		padding: 0;
 		border: none;
-		border-radius: 1em 1em 0 0;
+		border-radius: 1rem 1rem 0 0;
 		width: 80%;
 		max-width: 600px;
-		margin: 4em auto;
+		margin: 4rem auto;
 		transform: translateY(100%);
 		transition: transform 150ms ease-out;
-		height: calc(100% - 4em);
+		height: calc(100% - 4rem);
 	}
 
 	dialog[open] {
@@ -164,8 +164,8 @@
 	.combobox {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5em;
-		padding: 0.5em;
+		gap: 0.5rem;
+		padding: 0.5rem;
 		padding-bottom: 0;
 		height: 100%;
 	}
@@ -176,8 +176,8 @@
 		z-index: 1;
 		background: white;
 		border-bottom: 1px solid #eee;
-		padding: 0.5em;
-		border-radius: 0.5em;
+		padding: 0.5rem;
+		border-radius: 0.5rem;
 		border: 1px solid #ccc;
 		font-size: 1rem;
 	}
@@ -186,15 +186,15 @@
 		flex: 1;
 		overflow-y: auto;
 		padding: 0;
-		padding-bottom: 0.5em;
+		padding-bottom: 0.5rem;
 		margin: 0;
 		list-style: none;
 	}
 
 	li {
-		padding: 0.5em;
+		padding: 0.5rem;
 		cursor: pointer;
-		border-radius: 0.5em;
+		border-radius: 0.5rem;
 	}
 
 	/* Mouse hover */
