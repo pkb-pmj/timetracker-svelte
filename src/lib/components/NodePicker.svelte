@@ -150,11 +150,13 @@
 		margin: 4rem auto;
 		transform: translateY(100%);
 		transition: transform 150ms ease-out;
-		height: calc(100% - 4rem);
+		max-height: calc(100dvh - 4rem);
+		flex-direction: column;
 	}
 
 	dialog[open] {
 		transform: translateY(0);
+		display: flex;
 	}
 
 	dialog::backdrop {
@@ -167,13 +169,11 @@
 		gap: 0.5rem;
 		padding: 0.5rem;
 		padding-bottom: 0;
-		height: 100%;
+		flex: 1;
+		min-height: 0;
 	}
 
 	input {
-		position: sticky;
-		top: 0;
-		z-index: 1;
 		background: white;
 		border-bottom: 1px solid #eee;
 		padding: 0.5rem;
