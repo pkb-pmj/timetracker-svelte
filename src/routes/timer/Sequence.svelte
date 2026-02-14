@@ -9,7 +9,8 @@
 
 	let { id }: Props = $props();
 
-	const intervals = $derived(
+	// TODO: wrapper function for reactiveQuery that does this internally
+	let intervalStore = $derived(
 		reactiveQuery(
 			db
 				.selectFrom('intervals')
@@ -27,6 +28,8 @@
 				.compile(),
 		),
 	);
+
+	let intervals = $derived($intervalStore ?? []);
 
 	async function moveToNextInterval(node_id: number) {
 		const time = Date.now();
