@@ -146,7 +146,7 @@
 	dialog {
 		padding: 0;
 		border: none;
-		border-radius: 1rem 1rem 0 0;
+		border-radius: 1rem;
 		width: 80%;
 		max-width: 600px;
 		margin: 4rem auto;
@@ -170,7 +170,6 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		padding: 0.5rem;
-		padding-bottom: 0;
 		flex: 1;
 		min-height: 0;
 	}
@@ -187,9 +186,9 @@
 		flex: 1;
 		overflow-y: auto;
 		padding: 0;
-		padding-bottom: 0.5rem;
 		margin: 0;
 		list-style: none;
+		border-radius: 0.5rem;
 	}
 
 	li {
