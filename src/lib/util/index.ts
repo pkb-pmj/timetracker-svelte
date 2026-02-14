@@ -1,1 +1,1 @@
-export { formatTime } from './date';
+export { formatTime, formatDuration } from './date';
