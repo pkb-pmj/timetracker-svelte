@@ -177,7 +177,6 @@
 
 	input {
 		background: white;
-		border-bottom: 1px solid #eee;
 		padding: 0.5rem;
 		border-radius: 0.5rem;
 		border: 1px solid #ccc;
