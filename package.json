@@ -31,7 +31,9 @@
 		]
 	},
 	"dependencies": {
+		"@tailwindcss/vite": "^4.1.18",
 		"kysely": "^0.28.11",
-		"sqlocal": "^0.16.0"
+		"sqlocal": "^0.16.0",
+		"tailwindcss": "^4.1.18"
 	}
 }
