@@ -8,7 +8,15 @@ export interface Node {
 export interface Interval {
 	id: Generated<number>;
 	start_time: number;
-	end_time: number | null;
+	end_time: number;
+	start_node_id: number;
+	end_node_id: number;
+	sequence_id: number;
+}
+
+export interface ActiveInterval {
+	id: Generated<number>;
+	start_time: number;
 	start_node_id: number;
 	end_node_id: number | null;
 	sequence_id: number;
@@ -27,5 +35,6 @@ export enum SequenceStatus {
 export interface DB {
 	nodes: Node;
 	intervals: Interval;
+	active_intervals: ActiveInterval;
 	sequences: Sequence;
 }

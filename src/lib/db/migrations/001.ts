@@ -18,7 +18,16 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.createTable('intervals')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
 		.addColumn('start_time', 'integer', (col) => col.notNull())
-		.addColumn('end_time', 'integer')
+		.addColumn('end_time', 'integer', (col) => col.notNull())
+		.addColumn('start_node_id', 'integer', (col) => col.references('nodes.id').notNull())
+		.addColumn('end_node_id', 'integer', (col) => col.references('nodes.id').notNull())
+		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
+		.execute();
+
+	await db.schema
+		.createTable('active_intervals')
+		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+		.addColumn('start_time', 'integer', (col) => col.notNull())
 		.addColumn('start_node_id', 'integer', (col) => col.references('nodes.id').notNull())
 		.addColumn('end_node_id', 'integer', (col) => col.references('nodes.id'))
 		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
@@ -26,6 +35,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
+	await db.schema.dropTable('active_intervals').execute();
 	await db.schema.dropTable('intervals').execute();
 	await db.schema.dropTable('sequences').execute();
 	await db.schema.dropTable('nodes').execute();
