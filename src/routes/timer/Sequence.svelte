@@ -34,6 +34,27 @@
 
 	let intervals = $derived($intervalStore ?? []);
 
+	let activeIntervalStore = $derived(
+		reactiveQuery(
+			db
+				.selectFrom('active_intervals')
+				.innerJoin('nodes as start_node', 'start_node.id', 'active_intervals.start_node_id')
+				.leftJoin('nodes as end_node', 'end_node.id', 'active_intervals.end_node_id')
+				.select([
+					'active_intervals.id',
+					'active_intervals.start_time',
+					'start_node.id as start_id',
+					'start_node.name as start_name',
+					'end_node.id as end_id',
+					'end_node.name as end_name',
+				])
+				.where('sequence_id', '=', id)
+				.compile(),
+		),
+	);
+
+	let activeInterval = $derived($activeIntervalStore?.at(0) ?? null);
+
 	async function moveToNextInterval(node_id: number) {
 		const time = Date.now();
 
@@ -99,10 +120,35 @@
 				time: end_time,
 				node_id: end_id,
 				node_name: end_name,
-				duration: end_time === null ? start_time : end_time - start_time,
-				live: end_time === null,
+				duration: end_time - start_time,
+				live: false,
 			});
 		}
+
+		if (activeInterval) {
+			const { start_id, start_name, start_time, end_id, end_name } = activeInterval;
+			if (
+				!items.length ||
+				items.at(-1)?.time !== start_time ||
+				items.at(-1)?.node_id !== start_id
+			) {
+				items.push({
+					time: start_time,
+					node_id: start_id,
+					node_name: start_name,
+					duration: null,
+					live: false,
+				});
+			}
+			items.push({
+				time: null,
+				node_id: end_id,
+				node_name: end_name,
+				duration: start_time,
+				live: true,
+			});
+		}
+
 		return items;
 	});
 
