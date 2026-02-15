@@ -90,11 +90,10 @@
 	}
 
 	type TimelineItem = {
-		time: number | null;
-		node_id: number | null;
-		node_name: string | null;
+		time: number;
+		node_id: number;
+		node_name: string;
 		duration: number | null;
-		live: boolean;
 	};
 
 	let timeline = $derived.by(() => {
@@ -112,7 +111,6 @@
 					node_id: start_id,
 					node_name: start_name,
 					duration: null,
-					live: false,
 				});
 			}
 
@@ -121,57 +119,55 @@
 				node_id: end_id,
 				node_name: end_name,
 				duration: end_time - start_time,
-				live: false,
-			});
-		}
-
-		if (activeInterval) {
-			const { start_id, start_name, start_time, end_id, end_name } = activeInterval;
-			if (
-				!items.length ||
-				items.at(-1)?.time !== start_time ||
-				items.at(-1)?.node_id !== start_id
-			) {
-				items.push({
-					time: start_time,
-					node_id: start_id,
-					node_name: start_name,
-					duration: null,
-					live: false,
-				});
-			}
-			items.push({
-				time: null,
-				node_id: end_id,
-				node_name: end_name,
-				duration: start_time,
-				live: true,
 			});
 		}
 
 		return items;
 	});
 
+	let showActiveStartNode = $derived(
+		(activeInterval &&
+			(!timeline.length ||
+				timeline.at(-1)?.time !== activeInterval.start_time ||
+				timeline.at(-1)?.node_id !== activeInterval.start_id)) ??
+			false,
+	);
+
 	$inspect(timeline);
 </script>
 
+{#snippet timelineEdge(duration: number, live: boolean = false)}
+	<li class="edge" class:live>
+		<span class="time">
+			{formatDuration(duration)}
+		</span>
+		<span class="divider">|</span>
+	</li>
+{/snippet}
+
+{#snippet timelineNode(time: number, name: string | null, live: boolean = false)}
+	<li class="node" class:live>
+		<span class="time">{formatTime(time)}</span>
+		<span class="divider">O</span>
+		{name}
+	</li>
+{/snippet}
+
 <div class="container">
 	<ul>
-		{#each timeline as { duration, live, time, node_name }, i}
+		{#each timeline as { duration, time, node_name }}
 			{#if duration}
-				<li class="edge" class:live>
-					<span class="time">
-						{formatDuration(live ? duration : durationNow(duration))}
-					</span>
-					<span class="divider">|</span>
-				</li>
+				{@render timelineEdge(duration)}
 			{/if}
-			<li class="node" class:live>
-				<span class="time">{formatTime(time ?? timeNow())}</span>
-				<span class="divider">O</span>
-				{node_name}
-			</li>
+			{@render timelineNode(time, node_name)}
 		{/each}
+		{#if activeInterval}
+			{#if showActiveStartNode}
+				{@render timelineNode(activeInterval.start_time, activeInterval.start_name)}
+			{/if}
+			{@render timelineEdge(durationNow(activeInterval.start_time), true)}
+			{@render timelineNode(timeNow(), null, true)}
+		{/if}
 	</ul>
 	<button class="finish" onclick={cancelLastInterval}>Finish here</button>
 	<NodePicker onPicked={moveToNextInterval} />
