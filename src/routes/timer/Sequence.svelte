@@ -44,12 +44,12 @@
 				.where('end_time', 'is', null)
 				.set({ end_node_id: node_id, end_time: time })
 				.execute();
-		});
 
-		await db
-			.insertInto('intervals')
-			.values({ start_node_id: node_id, start_time: time, sequence_id: id })
-			.execute();
+			await trx
+				.insertInto('intervals')
+				.values({ start_node_id: node_id, start_time: time, sequence_id: id })
+				.execute();
+		});
 	}
 
 	async function cancelLastInterval() {
