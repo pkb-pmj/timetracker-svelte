@@ -175,7 +175,6 @@
 
 <style>
 	.container {
-		margin: 0.5rem;
 		padding: 0.5rem;
 		border-radius: 1rem;
 		border: 1px solid #ccc;
