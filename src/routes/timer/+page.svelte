@@ -24,7 +24,7 @@
 				.executeTakeFirstOrThrow();
 
 			await trx
-				.insertInto('intervals')
+				.insertInto('active_intervals')
 				.values({
 					start_node_id,
 					start_time,

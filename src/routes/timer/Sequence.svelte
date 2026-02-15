@@ -16,7 +16,7 @@
 			db
 				.selectFrom('intervals')
 				.innerJoin('nodes as start_node', 'start_node.id', 'intervals.start_node_id')
-				.leftJoin('nodes as end_node', 'end_node.id', 'intervals.end_node_id')
+				.innerJoin('nodes as end_node', 'end_node.id', 'intervals.end_node_id')
 				.select([
 					'intervals.id',
 					'intervals.start_time',
@@ -38,26 +38,34 @@
 		const time = Date.now();
 
 		await db.transaction().execute(async (trx) => {
-			await trx
-				.updateTable('intervals')
+			const activeInterval = await trx
+				.selectFrom('active_intervals')
 				.where('sequence_id', '=', id)
-				.where('end_time', 'is', null)
-				.set({ end_node_id: node_id, end_time: time })
-				.execute();
+				.selectAll()
+				// TODO: make sure somewhere that it does exist
+				.executeTakeFirstOrThrow();
 
 			await trx
 				.insertInto('intervals')
-				.values({ start_node_id: node_id, start_time: time, sequence_id: id })
+				.values({
+					start_node_id: activeInterval.start_node_id,
+					start_time: activeInterval.start_time,
+					end_node_id: node_id,
+					end_time: time,
+					sequence_id: id,
+				})
+				.execute();
+
+			await trx
+				.updateTable('active_intervals')
+				.where('sequence_id', '=', id)
+				.set({ start_node_id: node_id, start_time: time })
 				.execute();
 		});
 	}
 
 	async function cancelLastInterval() {
-		await db
-			.deleteFrom('intervals')
-			.where('sequence_id', '=', id)
-			.where('end_time', 'is', null)
-			.execute();
+		await db.deleteFrom('active_intervals').where('sequence_id', '=', id).execute();
 	}
 
 	type TimelineItem = {
