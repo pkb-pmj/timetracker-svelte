@@ -3,6 +3,8 @@
 	import { db, reactiveQuery } from '$lib/db';
 	import { formatDuration, formatTime, timeNow } from '$lib/util';
 	import { durationNow } from '$lib/util';
+	import type { StatementInput } from 'sqlocal';
+	import { fromStore, type Subscriber } from 'svelte/store';
 
 	interface Props {
 		id: number;
@@ -10,7 +12,41 @@
 
 	let { id }: Props = $props();
 
-	// TODO: wrapper function for reactiveQuery that does this internally
+	// this causes infinite loop
+	function reactiveQuerySignal<T extends Record<string, any>>(
+		query: StatementInput<T>,
+	): { readonly current: T[] } {
+		const store = reactiveQuery(query);
+
+		return fromStore({
+			subscribe(run: Subscriber<T[]>) {
+				return store.subscribe(run).unsubscribe;
+			},
+		});
+	}
+
+	let intervals2 = $derived(
+		reactiveQuerySignal(
+			db
+				.selectFrom('intervals')
+				.innerJoin('nodes as start_node', 'start_node.id', 'intervals.start_node_id')
+				.innerJoin('nodes as end_node', 'end_node.id', 'intervals.end_node_id')
+				.select([
+					'intervals.id',
+					'intervals.start_time',
+					'intervals.end_time',
+					'start_node.id as start_id',
+					'start_node.name as start_name',
+					'end_node.id as end_id',
+					'end_node.name as end_name',
+				])
+				.where('sequence_id', '=', id)
+				.orderBy('start_time', 'asc')
+				.compile(),
+		).current ?? [],
+	);
+
+	// this works fine
 	let intervalStore = $derived(
 		reactiveQuery(
 			db
@@ -34,6 +70,7 @@
 
 	let intervals = $derived($intervalStore ?? []);
 
+	// this isn't relevant
 	let activeIntervalStore = $derived(
 		reactiveQuery(
 			db
@@ -99,6 +136,7 @@
 	let timeline = $derived.by(() => {
 		const items: TimelineItem[] = [];
 		const intervalsList = intervals;
+		// const intervalsList = intervals2; // causes infinite loop
 		for (const interval of intervalsList) {
 			const { start_id, start_name, start_time, end_id, end_name, end_time } = interval;
 			if (
