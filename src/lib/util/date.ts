@@ -18,3 +18,7 @@ export function formatDuration(millis: number) {
 	else if (minutes) return `${minutes}m${seconds.toString()}s`;
 	else return `${seconds}s`;
 }
+
+export function toMillis(hours: number, minutes: number, seconds: number) {
+	return 1000 * (seconds + 60 * (minutes + 60 * hours));
+}
