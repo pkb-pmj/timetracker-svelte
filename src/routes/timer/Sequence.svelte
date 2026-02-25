@@ -136,22 +136,29 @@
 	$inspect(timeline);
 </script>
 
-{#snippet timelineEdge(duration: number, live: boolean = false)}
+{#snippet timelineEdge(duration: number, name: string | null = null, live: boolean = false)}
 	<li class="edge" class:live>
 		<span class="time">
 			{formatDuration(duration)}
 		</span>
 		<div class="line"></div>
+		{#if name !== null}
+			<span class="description">{name}</span>
+		{/if}
 	</li>
 {/snippet}
 
-{#snippet timelineNode(time: number, name: string | null, live: boolean = false)}
+{#snippet timelineNode(time: number, name: string | null = null, live: boolean = false)}
 	<li class="node" class:live>
 		<span class="time">{formatTime(time)}</span>
 		<div class="line top"></div>
 		<div class="line bottom"></div>
-		<div class="circle"></div>
-		<span class="description">{name}</span>
+		{#if name !== null}
+			<div class="marker circle"></div>
+			<span class="description">{name}</span>
+		{:else}
+			<div class="marker tick"></div>
+		{/if}
 	</li>
 {/snippet}
 
@@ -167,7 +174,7 @@
 			{#if showActiveStartNode}
 				{@render timelineNode(activeInterval.start_time, activeInterval.start_name)}
 			{/if}
-			{@render timelineEdge(durationNow(activeInterval.start_time), true)}
+			{@render timelineEdge(durationNow(activeInterval.start_time), null, true)}
 			{@render timelineNode(timeNow(), null, true)}
 		{/if}
 	</ul>
@@ -241,15 +248,24 @@
 		display: none;
 	}
 
-	.circle {
+	.marker {
 		grid-column: 2;
 		grid-row: 1;
 		place-self: center;
+	}
+
+	.marker.circle {
 		border-radius: 50%;
 		border: 1.5px solid black;
 		background-color: white;
 		width: 0.6rem;
 		height: 0.6rem;
+	}
+
+	.marker.tick {
+		border-top: 1.5px solid black;
+		width: 0.6rem;
+		height: 0;
 	}
 
 	/* color active interval differently */
@@ -258,7 +274,7 @@
 		font-style: italic;
 	}
 
-	.live .circle,
+	.live .marker,
 	.live .line,
 	/* including the bottom line segment of previous node */
 	li.node:has(+ .live) .line.bottom {
@@ -267,6 +283,7 @@
 
 	.description {
 		grid-column: 3;
+		margin: 0.1rem 0;
 	}
 
 	.node .description {
