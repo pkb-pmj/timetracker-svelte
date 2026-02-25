@@ -1,2 +1,2 @@
-export { formatTime, formatDuration, toMillis } from './date';
+export { formatTime, formatDuration, toMillis } from './formatTime';
 export { timeNow, durationNow } from './now.svelte';
