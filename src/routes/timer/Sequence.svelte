@@ -89,49 +89,91 @@
 		await db.deleteFrom('active_intervals').where('sequence_id', '=', id).execute();
 	}
 
-	type TimelineItem = {
+	interface TimelineTick {
+		type: 'tick';
 		time: number;
-		node_id: number;
-		node_name: string;
-		duration: number | null;
-	};
+	}
+
+	interface TimelineEvent {
+		type: 'event';
+		time: number;
+		label: string;
+	}
+
+	interface TimelineInterval {
+		type: 'interval';
+		startRow: number;
+		endRow: number;
+		duration: number;
+		label: string;
+	}
+
+	type TimelinePoint = TimelineEvent | TimelineTick;
+
+	interface TimelineTimestamp {
+		ending: TimelineInterval[];
+		starting: TimelineInterval[];
+		events: TimelinePoint[];
+	}
 
 	let timeline = $derived.by(() => {
-		const items: TimelineItem[] = [];
-		const intervalsList = intervals;
-		for (const interval of intervalsList) {
-			const { start_id, start_name, start_time, end_id, end_name, end_time } = interval;
-			if (
-				!items.length ||
-				items.at(-1)?.time !== start_time ||
-				items.at(-1)?.node_id !== start_id
-			) {
-				items.push({
-					time: start_time,
-					node_id: start_id,
-					node_name: start_name,
-					duration: null,
-				});
-			}
+		const timestamps = new Map<number, TimelineTimestamp>();
 
-			items.push({
-				time: end_time,
-				node_id: end_id,
-				node_name: end_name,
+		for (const interval of intervals) {
+			const { start_id, start_name, start_time, end_id, end_name, end_time } = interval;
+
+			const timelineInterval: TimelineInterval = {
+				type: 'interval',
+				startRow: start_time,
+				endRow: end_time,
 				duration: end_time - start_time,
-			});
+				label: 'Walk',
+			};
+
+			const startPoint: TimelinePoint = {
+				type: 'event',
+				time: start_time,
+				label: start_name,
+			};
+
+			const endPoint: TimelinePoint = {
+				type: 'event',
+				time: end_time,
+				label: end_name,
+			};
+
+			if (!timestamps.has(start_time))
+				timestamps.set(start_time, { ending: [], starting: [], events: [] });
+			timestamps.get(start_time)!.starting.push(timelineInterval);
+			timestamps.get(start_time)!.events.push(startPoint);
+			if (!timestamps.has(end_time))
+				timestamps.set(end_time, { ending: [], starting: [], events: [] });
+			timestamps.get(end_time)!.ending.push(timelineInterval);
+			timestamps.get(end_time)!.events.push(endPoint);
 		}
+
+		const timestampMap: Record<number, number> = {};
+		let i = 1;
+
+		const items = timestamps
+			.entries()
+			.flatMap(([time, obj]) => {
+				timestampMap[time] = i;
+				const arr = [obj.events[0], ...obj.starting];
+				i += arr.length;
+				return arr;
+			})
+			.toArray();
+
+		items.forEach((item) => {
+			if (item.type === 'interval') {
+				item.startRow = timestampMap[item.startRow];
+				item.endRow = timestampMap[item.endRow];
+			}
+		});
 
 		return items;
 	});
-
-	let showActiveStartNode = $derived(
-		(activeInterval &&
-			(!timeline.length ||
-				timeline.at(-1)?.time !== activeInterval.start_time ||
-				timeline.at(-1)?.node_id !== activeInterval.start_id)) ??
-			false,
-	);
 
 	$inspect(timeline);
 </script>
@@ -151,8 +193,14 @@
 	</li>
 {/snippet}
 
-{#snippet timelineInterval(startRow: number, endRow: number, duration: string, label: string)}
-	<li class="interval" style:grid-row={startRow + 1}>
+{#snippet timelineInterval(
+	labelRow: number,
+	startRow: number,
+	endRow: number,
+	duration: string,
+	label: string,
+)}
+	<li class="interval" style:grid-row={labelRow}>
 		<span class="duration">{duration}</span>
 		<span class="label">{label}</span>
 	</li>
@@ -169,13 +217,15 @@
 
 <div class="container">
 	<ul>
-		{@render timelineEvent(1, '12:43', 'Event 1')}
-		{@render timelineTick(2, '12:48')}
-		{@render timelineInterval(2, 4, '4m17s', 'Interval 1')}
-		{@render timelineTick(4, '12:52')}
-		{@render timelineInterval(4, 6, '5m2s', 'Interval 2')}
-		{@render timelineEvent(6, '12:57', 'Event 2')}
-		{@render timelineEvent(7, '13:01', 'Event 3')}
+		{#each timeline as t, i}
+			{#if t.type === 'event'}
+				{@render timelineEvent(i + 1, formatTime(t.time)!, t.label)}
+			{:else if t.type === 'tick'}
+				{@render timelineTick(i + 1, formatTime(t.time)!)}
+			{:else}
+				{@render timelineInterval(i + 1, t.startRow, t.endRow, formatDuration(t.duration), t.label)}
+			{/if}
+		{/each}
 	</ul>
 	<button class="finish" onclick={cancelLastInterval}>Finish here</button>
 	<NodePicker onPicked={moveToNextInterval} />
