@@ -136,47 +136,46 @@
 	$inspect(timeline);
 </script>
 
-{#snippet timelineEdge(duration: number, name: string | null = null, live: boolean = false)}
-	<li class="edge" class:live>
-		<span class="time">
-			{formatDuration(duration)}
-		</span>
-		<div class="line"></div>
-		{#if name !== null}
-			<span class="description">{name}</span>
-		{/if}
+{#snippet timelineEvent(row: number, time: string, label: string)}
+	<li class="event" style:grid-row={row}>
+		<span class="time">{time}</span>
+		<div class="marker circle"></div>
+		<span class="label">{label}</span>
 	</li>
 {/snippet}
 
-{#snippet timelineNode(time: number, name: string | null = null, live: boolean = false)}
-	<li class="node" class:live>
-		<span class="time">{formatTime(time)}</span>
-		<div class="line top"></div>
-		<div class="line bottom"></div>
-		{#if name !== null}
-			<div class="marker circle"></div>
-			<span class="description">{name}</span>
-		{:else}
-			<div class="marker tick"></div>
-		{/if}
+{#snippet timelineTick(row: number, time: string)}
+	<li class="event" style:grid-row={row}>
+		<span class="time">{time}</span>
+		<div class="marker tick"></div>
 	</li>
+{/snippet}
+
+{#snippet timelineInterval(startRow: number, endRow: number, duration: string, label: string)}
+	<li class="interval" style:grid-row={startRow + 1}>
+		<span class="duration">{duration}</span>
+		<span class="label">{label}</span>
+	</li>
+	<div
+		class="interval line-container"
+		style:grid-row-start={startRow}
+		style:grid-row-end={endRow + 1}
+	>
+		<div class="line start"></div>
+		<div class="line middle"></div>
+		<div class="line end"></div>
+	</div>
 {/snippet}
 
 <div class="container">
 	<ul>
-		{#each timeline as { duration, time, node_name }}
-			{#if duration}
-				{@render timelineEdge(duration)}
-			{/if}
-			{@render timelineNode(time, node_name)}
-		{/each}
-		{#if activeInterval}
-			{#if showActiveStartNode}
-				{@render timelineNode(activeInterval.start_time, activeInterval.start_name)}
-			{/if}
-			{@render timelineEdge(durationNow(activeInterval.start_time), null, true)}
-			{@render timelineNode(timeNow(), null, true)}
-		{/if}
+		{@render timelineEvent(1, '12:43', 'Event 1')}
+		{@render timelineTick(2, '12:48')}
+		{@render timelineInterval(2, 4, '4m17s', 'Interval 1')}
+		{@render timelineTick(4, '12:52')}
+		{@render timelineInterval(4, 6, '5m2s', 'Interval 2')}
+		{@render timelineEvent(6, '12:57', 'Event 2')}
+		{@render timelineEvent(7, '13:01', 'Event 3')}
 	</ul>
 	<button class="finish" onclick={cancelLastInterval}>Finish here</button>
 	<NodePicker onPicked={moveToNextInterval} />
@@ -205,7 +204,8 @@
 		align-items: center;
 	}
 
-	.time {
+	.time,
+	.duration {
 		grid-column: 1;
 		grid-row: 1;
 		font-size: 0.75rem;
@@ -214,7 +214,7 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.node .time {
+	.time {
 		/* move timestamp further left, so timestamp-circle and duration-line distances are equal */
 		/* margin instead of padding so width is independent */
 		margin-right: 0.25rem;
@@ -222,30 +222,33 @@
 		width: 8ch;
 	}
 
-	.line {
-		grid-row: 1;
+	.line-container {
 		grid-column: 2;
+		display: grid;
+		grid-template-rows: subgrid;
 		justify-self: center;
 		align-self: stretch;
-		/* yes, it does center itself correctly */
-		border-left: 1.5px solid black;
+	}
+
+	.line {
+		border: 1.5px solid green;
 		z-index: -1;
 	}
 
-	.line.top {
-		height: 50%;
-		align-self: start;
-	}
-
-	.line.bottom {
-		height: 50%;
+	.line.start {
+		grid-row: 1;
+		height: calc(50% - 2.25px);
 		align-self: end;
 	}
 
-	/* ensure line doesn't stick out beyond first or last node */
-	li.node:first-child .line.top,
-	li.node:last-child .line.bottom {
-		display: none;
+	.line.middle {
+		grid-row: 2 / -2;
+	}
+
+	.line.end {
+		grid-row: -1;
+		height: calc(50% - 2.25px);
+		align-self: start;
 	}
 
 	.marker {
@@ -275,18 +278,16 @@
 	}
 
 	.live .marker,
-	.live .line,
-	/* including the bottom line segment of previous node */
-	li.node:has(+ .live) .line.bottom {
+	.live .line {
 		border-color: #08f;
 	}
 
-	.description {
+	.label {
 		grid-column: 3;
-		margin: 0.1rem 0;
+		margin-left: 0.1rem;
 	}
 
-	.node .description {
+	.event .label {
 		margin-left: 0.25rem;
 	}
 
