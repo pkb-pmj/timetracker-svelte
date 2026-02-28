@@ -35,7 +35,9 @@ export interface TimelineTimestamp {
 	events: TimelinePoint[];
 }
 
-export function createTimeline(intervals: Interval[]) {
+export type TimelineItem = TimelineInterval | TimelinePoint;
+
+export function createTimeline(intervals: Interval[]): TimelineItem[] {
 	const timestamps = new Map<number, TimelineTimestamp>();
 
 	for (const interval of intervals) {
