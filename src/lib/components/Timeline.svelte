@@ -50,7 +50,7 @@
 	</div>
 {/snippet}
 
-<ul>
+<ul style:grid-template-rows="repeat({2 * timeline.length}, auto)">
 	{#each timeline as { timestamp: t, durations }, i}
 		{#if t.label}
 			{@render timelineEvent(2 * i + 1, formatTime(t.time)!, t.label)}
@@ -62,10 +62,14 @@
 				{@render timelineIntervalLabel(formatDuration(duration), label)}
 			{/each}
 		</div>
-		{#each durations as { startIndex, endIndex }}
-			{@render timelineIntervalLine(2 * startIndex + 1, 2 * endIndex + 1)}
-		{/each}
 	{/each}
+	<div class="interval-lines">
+		{#each timeline as { durations }}
+			{#each durations as { startIndex, endIndex }}
+				{@render timelineIntervalLine(2 * startIndex + 1, 2 * endIndex + 1)}
+			{/each}
+		{/each}
+	</div>
 </ul>
 
 <style>
@@ -75,6 +79,15 @@
 		/* the other option would be min-content + manual padding in duration, */
 		/* both are equally manual and interdependent */
 		grid-template-columns: min-content 0.8rem 1fr;
+	}
+
+	.interval-lines {
+		grid-column: 2;
+		grid-row: 1 / -1;
+		display: grid;
+		grid-template-rows: subgrid;
+		grid-auto-flow: column;
+		column-gap: 2px;
 	}
 
 	/* inherit columns from <ul>, contain children in one row without explicit grid-row */
@@ -105,7 +118,6 @@
 	}
 
 	.line-container {
-		grid-column: 2;
 		display: grid;
 		grid-template-rows: subgrid;
 		justify-self: center;
