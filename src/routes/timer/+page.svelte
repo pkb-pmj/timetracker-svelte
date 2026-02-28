@@ -2,7 +2,7 @@
 	import NodePicker from '$lib/components/NodePicker.svelte';
 	import { db, reactiveQuery } from '$lib/db';
 	import { SequenceStatus } from '$lib/db/schema';
-	import Sequence from './Sequence.svelte';
+	import Sequence from '$lib/components/Sequence.svelte';
 
 	const activeSequences = reactiveQuery(
 		db
