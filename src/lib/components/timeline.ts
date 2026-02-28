@@ -1,3 +1,5 @@
+import { toMillis } from '$lib/util';
+
 export interface Interval {
 	id: number;
 	start_time: number;
@@ -94,4 +96,67 @@ export function createTimeline(intervals: Interval[]): TimelineItem[] {
 	});
 
 	return items;
+}
+
+interface Duration {
+	duration: number;
+	label: string | null;
+	startIndex: number;
+	endIndex: number;
+}
+
+interface Timestamp {
+	time: number;
+	label: string | null;
+}
+
+interface TimelineGroup {
+	timestamp: Timestamp;
+	durations: Duration[];
+}
+
+export function dummyTimeline2(): TimelineGroup[] {
+	return [
+		{
+			timestamp: {
+				time: Date.now(),
+				label: 'Event1',
+			},
+			durations: [
+				{
+					duration: toMillis(0, 5, 3),
+					label: 'Activity1',
+					startIndex: 0,
+					endIndex: 1,
+				},
+				{
+					duration: toMillis(0, 9, 7),
+					label: 'Activity3',
+					startIndex: 0,
+					endIndex: 2,
+				},
+			],
+		},
+		{
+			timestamp: {
+				time: Date.now(),
+				label: 'Event2',
+			},
+			durations: [
+				{
+					duration: toMillis(0, 7, 4),
+					label: 'Activity2',
+					startIndex: 1,
+					endIndex: 2,
+				},
+			],
+		},
+		{
+			timestamp: {
+				time: Date.now(),
+				label: 'Event3',
+			},
+			durations: [],
+		},
+	];
 }

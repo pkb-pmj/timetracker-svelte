@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatDuration, formatTime, timeNow } from '$lib/util';
 	import { durationNow } from '$lib/util';
-	import { createTimeline, type Interval } from './timeline';
+	import { createTimeline, dummyTimeline2, type Interval } from './timeline';
 
 	let { intervals }: Props = $props();
 
@@ -9,7 +9,9 @@
 		intervals: Interval[];
 	}
 
-	let timeline = $derived(createTimeline(intervals));
+	// let timeline = $derived(createTimeline(intervals));
+
+	let timeline = dummyTimeline2();
 
 	$inspect(timeline);
 </script>
@@ -29,17 +31,14 @@
 	</li>
 {/snippet}
 
-{#snippet timelineInterval(
-	labelRow: number,
-	startRow: number,
-	endRow: number,
-	duration: string,
-	label: string,
-)}
-	<li class="interval" style:grid-row={labelRow}>
+{#snippet timelineIntervalLabel(duration: string, label: string | null)}
+	<li class="interval">
 		<span class="duration">{duration}</span>
 		<span class="label">{label}</span>
 	</li>
+{/snippet}
+
+{#snippet timelineIntervalLine(startRow: number, endRow: number)}
 	<div
 		class="interval line-container"
 		style:grid-row-start={startRow}
@@ -52,14 +51,20 @@
 {/snippet}
 
 <ul>
-	{#each timeline as t, i}
-		{#if t.type === 'event'}
-			{@render timelineEvent(i + 1, formatTime(t.time)!, t.label)}
-		{:else if t.type === 'tick'}
-			{@render timelineTick(i + 1, formatTime(t.time)!)}
+	{#each timeline as { timestamp: t, durations }, i}
+		{#if t.label}
+			{@render timelineEvent(2 * i + 1, formatTime(t.time)!, t.label)}
 		{:else}
-			{@render timelineInterval(i + 1, t.startRow, t.endRow, formatDuration(t.duration), t.label)}
+			{@render timelineTick(2 * i + 1, formatTime(t.time)!)}
 		{/if}
+		<div class="interval-group" style:grid-row={2 * i + 2}>
+			{#each durations as { duration, label }}
+				{@render timelineIntervalLabel(formatDuration(duration), label)}
+			{/each}
+		</div>
+		{#each durations as { startIndex, endIndex }}
+			{@render timelineIntervalLine(2 * startIndex + 1, 2 * endIndex + 1)}
+		{/each}
 	{/each}
 </ul>
 
@@ -73,6 +78,7 @@
 	}
 
 	/* inherit columns from <ul>, contain children in one row without explicit grid-row */
+	.interval-group,
 	li {
 		grid-column: 1 / -1;
 		display: grid;
