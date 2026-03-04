@@ -78,11 +78,16 @@
 		/* 0.8rem instead of min-content, handles padding for durations */
 		/* the other option would be min-content + manual padding in duration, */
 		/* both are equally manual and interdependent */
-		grid-template-columns: min-content 0.8rem 1fr;
+		grid-template-columns:
+			[labels-left] 1fr
+			[timestamps] min-content
+			[lines] min-content
+			[timeline] 0.8rem
+			[labels-right] 1fr;
 	}
 
 	.interval-lines {
-		grid-column: 2;
+		grid-column: lines;
 		grid-row: 1 / -1;
 		display: grid;
 		grid-template-rows: subgrid;
@@ -101,7 +106,7 @@
 
 	.time,
 	.duration {
-		grid-column: 1;
+		grid-column: timestamps;
 		grid-row: 1;
 		font-size: 0.75rem;
 		text-align: right;
@@ -146,7 +151,7 @@
 	}
 
 	.marker {
-		grid-column: 2;
+		grid-column: timeline;
 		grid-row: 1;
 		place-self: center;
 	}
@@ -177,7 +182,7 @@
 	}
 
 	.label {
-		grid-column: 3;
+		grid-column: labels-right;
 		margin-left: 0.1rem;
 	}
 
