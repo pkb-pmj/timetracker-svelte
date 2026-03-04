@@ -53,9 +53,9 @@
 <ul style:grid-template-rows="repeat({2 * timeline.length}, auto)">
 	{#each timeline as { timestamp: t, durations }, i}
 		{#if t.label}
-			{@render timelineEvent(2 * i + 1, formatTime(t.time)!, t.label)}
+			{@render timelineEvent(2 * i + 1, formatTime(t.time), t.label)}
 		{:else}
-			{@render timelineTick(2 * i + 1, formatTime(t.time)!)}
+			{@render timelineTick(2 * i + 1, formatTime(t.time))}
 		{/if}
 		<div class="interval-group" style:grid-row={2 * i + 2}>
 			{#each durations as { duration, label }}
