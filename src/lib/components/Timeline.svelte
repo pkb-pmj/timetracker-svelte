@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatDuration, formatTime, timeNow } from '$lib/util';
 	import { durationNow } from '$lib/util';
-	import { createTimeline, dummyTimeline2, type Interval } from './timeline';
+	import { createTimeline, type Interval } from './timeline';
 
 	let { intervals }: Props = $props();
 
@@ -9,9 +9,7 @@
 		intervals: Interval[];
 	}
 
-	// let timeline = $derived(createTimeline(intervals));
-
-	let timeline = dummyTimeline2();
+	let { timeline, numLanes, numRows } = $derived(createTimeline(intervals));
 
 	$inspect(timeline);
 </script>
@@ -31,18 +29,19 @@
 	</li>
 {/snippet}
 
-{#snippet timelineIntervalLabel(duration: string, label: string | null)}
-	<li class="interval">
+{#snippet timelineIntervalLabel(row: number, duration: string, label: string | null)}
+	<li class="interval" style:grid-row={row}>
 		<span class="duration">{duration}</span>
 		<span class="label">{label}</span>
 	</li>
 {/snippet}
 
-{#snippet timelineIntervalLine(startRow: number, endRow: number)}
+{#snippet timelineIntervalLine(startRow: number, endRow: number, col: number)}
 	<div
 		class="interval line-container"
 		style:grid-row-start={startRow}
 		style:grid-row-end={endRow + 1}
+		style:grid-column="lane {col}"
 	>
 		<div class="line start"></div>
 		<div class="line middle"></div>
@@ -50,26 +49,22 @@
 	</div>
 {/snippet}
 
-<ul style:grid-template-rows="repeat({2 * timeline.length}, auto)">
-	{#each timeline as { timestamp: t, durations }, i}
-		{#if t.label}
-			{@render timelineEvent(2 * i + 1, formatTime(t.time), t.label)}
+<ul style:grid-template-rows="repeat({numRows}, auto)" style:--num-lanes={numLanes}>
+	{#each timeline as { timestamp, row, place, intervals }}
+		{#if place}
+			{@render timelineEvent(row, formatTime(timestamp), place)}
 		{:else}
-			{@render timelineTick(2 * i + 1, formatTime(t.time))}
+			{@render timelineTick(row, formatTime(timestamp))}
 		{/if}
-		<div class="interval-group" style:grid-row={2 * i + 2}>
-			{#each durations as { duration, label }}
-				{@render timelineIntervalLabel(formatDuration(duration), label)}
-			{/each}
-		</div>
-	{/each}
-	<div class="interval-lines">
-		{#each timeline as { durations }}
-			{#each durations as { startIndex, endIndex }}
-				{@render timelineIntervalLine(2 * startIndex + 1, 2 * endIndex + 1)}
-			{/each}
+		{#each intervals as { row, startRow, endRow, col, interval }}
+			{@render timelineIntervalLabel(
+				row,
+				formatDuration(interval.end_time - interval.start_time),
+				'Walk',
+			)}
+			{@render timelineIntervalLine(startRow, endRow, col)}
 		{/each}
-	</div>
+	{/each}
 </ul>
 
 <style>
@@ -81,22 +76,12 @@
 		grid-template-columns:
 			[labels-left] 1fr
 			[timestamps] min-content
-			[lines] min-content
+			repeat(var(--num-lanes), [lane] min-content)
 			[timeline] 0.8rem
 			[labels-right] 1fr;
 	}
 
-	.interval-lines {
-		grid-column: lines;
-		grid-row: 1 / -1;
-		display: grid;
-		grid-template-rows: subgrid;
-		grid-auto-flow: column;
-		column-gap: 2px;
-	}
-
 	/* inherit columns from <ul>, contain children in one row without explicit grid-row */
-	.interval-group,
 	li {
 		grid-column: 1 / -1;
 		display: grid;
