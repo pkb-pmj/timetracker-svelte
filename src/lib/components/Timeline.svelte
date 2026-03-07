@@ -29,22 +29,31 @@
 	</li>
 {/snippet}
 
-{#snippet timelineIntervalLabel(row: number, duration: string, label: string | null)}
+{#snippet timelineInterval(
+	row: number,
+	startRow: number,
+	endRow: number,
+	col: number,
+	duration: string,
+	label: string | null,
+)}
 	<li class="interval" style:grid-row={row}>
 		<span class="duration">{duration}</span>
-		<span class="label">{label}</span>
+		<div class="label-background left" style:grid-column-start="lane {col}"></div>
+		<div class="label-background right">
+			<span class="label">{label}</span>
+		</div>
 	</li>
-{/snippet}
-
-{#snippet timelineIntervalLine(startRow: number, endRow: number, col: number)}
 	<div
 		class="interval line-container"
 		style:grid-row-start={startRow}
 		style:grid-row-end={endRow + 1}
 		style:grid-column="lane {col}"
 	>
-		<div class="line start"></div>
-		<div class="line middle"></div>
+		<!-- <div class="line start"></div> -->
+		{#if endRow - startRow > 1}
+			<div class="line middle"></div>
+		{/if}
 		<div class="line end"></div>
 	</div>
 {/snippet}
@@ -57,12 +66,14 @@
 			{@render timelineTick(row, formatTime(timestamp))}
 		{/if}
 		{#each intervals as { row, startRow, endRow, col, interval }}
-			{@render timelineIntervalLabel(
+			{@render timelineInterval(
 				row,
+				row,
+				endRow,
+				col,
 				formatDuration(interval.end_time - interval.start_time),
 				'Walk',
 			)}
-			{@render timelineIntervalLine(startRow, endRow, col)}
 		{/each}
 	{/each}
 </ul>
@@ -74,10 +85,13 @@
 		/* the other option would be min-content + manual padding in duration, */
 		/* both are equally manual and interdependent */
 		grid-template-columns:
-			[labels-left] 1fr
+			[labels-left] auto
+			0.2rem
 			[timestamps] min-content
-			repeat(var(--num-lanes), [lane] min-content)
+			0.2rem
+			repeat(var(--num-lanes), [lane] min-content 0.2rem)
 			[timeline] 0.8rem
+			0.2rem
 			[labels-right] 1fr;
 	}
 
@@ -87,6 +101,31 @@
 		display: grid;
 		grid-template-columns: subgrid;
 		align-items: center;
+	}
+
+	.interval .label-background {
+		grid-row: 1;
+		/* display: grid; */
+		align-self: stretch;
+		/* grid-template-columns: subgrid; */
+		background-color: rgba(0, 128, 0, 0.1);
+		/* border: 1.5px solid green; */
+	}
+	.label-background.left {
+		grid-column-end: labels-right;
+		border-left: 1.5px solid green;
+		border-right: none;
+		border-top-left-radius: 1rem;
+		border-bottom-left-radius: 0;
+		border-left-width: 4px;
+	}
+	.label-background.right {
+		grid-column: labels-right;
+		justify-self: left;
+		padding-right: 0.5rem;
+		border-left: none;
+		border-top-right-radius: 0.5rem;
+		border-bottom-right-radius: 0.5rem;
 	}
 
 	.time,
@@ -100,9 +139,6 @@
 	}
 
 	.time {
-		/* move timestamp further left, so timestamp-circle and duration-line distances are equal */
-		/* margin instead of padding so width is independent */
-		margin-right: 0.25rem;
 		/* 8 characters - hh:mm:ss TODO: different time formats */
 		width: 8ch;
 	}
@@ -115,24 +151,23 @@
 	}
 
 	.line {
-		border: 1.5px solid green;
+		border-left: 4px solid green;
 		z-index: -1;
-	}
-
-	.line.start {
-		grid-row: 1;
-		height: calc(50% - 2.25px);
-		align-self: end;
 	}
 
 	.line.middle {
 		grid-row: 2 / -2;
+		border-top: none;
+		border-bottom: none;
 	}
 
 	.line.end {
 		grid-row: -1;
-		height: calc(50% - 2.25px);
+		height: 50%;
 		align-self: start;
+		border-bottom-left-radius: 2px;
+		border-bottom-right-radius: 2px;
+		border-top: none;
 	}
 
 	.marker {
@@ -167,11 +202,7 @@
 	}
 
 	.label {
+		grid-row: 1;
 		grid-column: labels-right;
-		margin-left: 0.1rem;
-	}
-
-	.event .label {
-		margin-left: 0.25rem;
 	}
 </style>
