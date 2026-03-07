@@ -28,12 +28,19 @@ export function createTimeline(intervals: Interval[]): {
 	numLanes: number;
 	numRows: number;
 } {
-	const timestampCount = new Map<number, number>();
+	let timestampCount = new Map<number, number>();
 
 	intervals.forEach(({ start_time: start, end_time: end }) => {
 		timestampCount.set(start, (timestampCount.get(start) ?? 1) + 1);
 		timestampCount.set(end, timestampCount.get(end) ?? 1);
 	});
+
+	timestampCount = new Map(
+		timestampCount
+			.entries()
+			.toArray()
+			.sort((a, b) => a[0] - b[0]),
+	);
 
 	const timestampRow = new Map<number, number>();
 
