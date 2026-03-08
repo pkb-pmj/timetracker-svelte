@@ -1,79 +1,93 @@
 <script lang="ts">
 	import { formatDuration, formatTime, timeNow } from '$lib/util';
 	import { durationNow } from '$lib/util';
-	import { createTimeline, type Interval } from './timeline';
+	import {
+		createTimeline,
+		type ActivityIn,
+		type ActivityOut,
+		type EventIn,
+		type EventOut,
+		type IntervalIn,
+		type IntervalOut,
+	} from './timeline';
 
-	let { intervals }: Props = $props();
+	let { events, activities, intervals }: Props = $props();
 
 	interface Props {
-		intervals: Interval[];
+		events: EventIn<unknown>[];
+		activities: ActivityIn<unknown>[];
+		intervals: IntervalIn<unknown>[];
 	}
 
-	let { timeline, numLanes, numRows } = $derived(createTimeline(intervals));
+	let { timeline, numLanes, numRows } = $derived(createTimeline(events, activities, intervals));
 
 	$inspect(timeline);
 </script>
 
-{#snippet timelineEvent(row: number, time: string, label: string)}
-	<li class="event" style:grid-row={row}>
-		<span class="time">{time}</span>
+{#snippet timelineEvent(o: EventOut<unknown>)}
+	<li class="event" style:grid-row={o.row}>
+		<span class="time">{formatTime(o.time)}</span>
 		<div class="marker circle"></div>
-		<span class="label">{label}</span>
+		<span class="label">{o.label}</span>
 	</li>
 {/snippet}
 
-{#snippet timelineTick(row: number, time: string)}
+{#snippet timelineTick(row: number, time: number)}
 	<li class="event" style:grid-row={row}>
-		<span class="time">{time}</span>
+		<span class="time">{formatTime(time)}</span>
 		<div class="marker tick"></div>
 	</li>
 {/snippet}
 
-{#snippet timelineInterval(
-	row: number,
-	startRow: number,
-	endRow: number,
-	col: number,
-	duration: string,
-	label: string | null,
-)}
-	<li class="interval" style:grid-row={row}>
-		<span class="duration">{duration}</span>
-		<div class="label-background left" style:grid-column-start="lane {col}"></div>
+{#snippet timelineActivity(o: ActivityOut<unknown>)}
+	<li class="interval" style:grid-row={o.start}>
+		<span class="duration">{formatDuration(o.duration)}</span>
+		<div class="label-background left" style:grid-column-start="lane {o.lane}"></div>
 		<div class="label-background right">
-			<span class="label">{label}</span>
+			<span class="label">{o.label}</span>
 		</div>
 	</li>
 	<div
 		class="interval line-container"
-		style:grid-row-start={startRow}
-		style:grid-row-end={endRow + 1}
-		style:grid-column="lane {col}"
+		style:grid-row-start={o.start}
+		style:grid-row-end={o.end + 1}
+		style:grid-column="lane {o.lane}"
 	>
-		<!-- <div class="line start"></div> -->
-		{#if endRow - startRow > 1}
+		{#if o.end - o.start > 1}
 			<div class="line middle"></div>
 		{/if}
 		<div class="line end"></div>
 	</div>
 {/snippet}
 
-<ul style:grid-template-rows="repeat({numRows}, auto)" style:--num-lanes={numLanes}>
-	{#each timeline as { timestamp, row, place, intervals }}
-		{#if place}
-			{@render timelineEvent(row, formatTime(timestamp), place)}
-		{:else}
-			{@render timelineTick(row, formatTime(timestamp))}
+{#snippet timelineInterval(o: IntervalOut<unknown>)}
+	<li class="interval" style:grid-row={o.row}>
+		<span class="duration">{formatDuration(o.duration)}</span>
+	</li>
+	<div
+		class="interval line-container"
+		style:grid-row-start={o.start}
+		style:grid-row-end={o.end + 1}
+		style:grid-column="timeline"
+	>
+		<div class="line start"></div>
+		{#if o.end - o.start > 1}
+			<div class="line middle"></div>
 		{/if}
-		{#each intervals as { row, startRow, endRow, col, interval }}
-			{@render timelineInterval(
-				row,
-				row,
-				endRow,
-				col,
-				formatDuration(interval.end_time - interval.start_time),
-				'Walk',
-			)}
+		<div class="line end"></div>
+	</div>
+{/snippet}
+
+<ul style:grid-template-rows="repeat({numRows}, auto)" style:--num-lanes={Math.max(numLanes, 1)}>
+	{#each timeline as { time, events, activities, intervals }}
+		{#each events as event}
+			{@render timelineEvent(event)}
+		{/each}
+		{#each activities as activity}
+			{@render timelineActivity(activity)}
+		{/each}
+		{#each intervals as interval}
+			{@render timelineInterval(interval)}
 		{/each}
 	{/each}
 </ul>
@@ -153,6 +167,15 @@
 	.line {
 		border-left: 4px solid green;
 		z-index: -1;
+	}
+
+	.line.start {
+		grid-row: 1;
+		height: 50%;
+		align-self: end;
+		border-top-left-radius: 2px;
+		border-top-right-radius: 2px;
+		border-bottom: none;
 	}
 
 	.line.middle {

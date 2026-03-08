@@ -1,94 +1,127 @@
-export interface Interval {
-	id: number;
-	start_time: number;
-	end_time: number;
-	start_id: number;
-	start_name: string;
-	end_id: number;
-	end_name: string;
+interface TimestampInternal<E, A, I> {
+	events: EventIn<E>[];
+	activities: ActivityIn<A>[];
+	intervals: IntervalIn<I>[];
 }
 
-interface TimelineItemGroup {
-	timestamp: number;
+export interface TimestampOut<E, A, I> {
+	time: number;
+	events: EventOut<E>[];
+	activities: ActivityOut<A>[];
+	intervals: IntervalOut<I>[];
+}
+
+export interface ActivityIn<T> {
+	start: number;
+	end: number;
+	duration: number;
+	label: string;
+	ref: T;
+}
+
+export interface ActivityOut<T> {
+	start: number;
+	end: number;
+	lane: number;
+	duration: number;
+	label: string;
+	ref: T;
+}
+
+export interface IntervalIn<T> {
+	start: number;
+	end: number;
+	duration: number;
+	ref: T;
+}
+
+export interface IntervalOut<T> extends IntervalIn<T> {
 	row: number;
-	place: string | null;
-	intervals: TimelineInterval[];
 }
 
-interface TimelineInterval {
+export interface EventIn<T> {
+	time: number;
+	label: string;
+	ref: T;
+}
+
+export interface EventOut<T> extends EventIn<T> {
 	row: number;
-	startRow: number;
-	endRow: number;
-	col: number;
-	interval: Interval;
 }
 
-export function createTimeline(intervals: Interval[]): {
-	timeline: TimelineItemGroup[];
-	numLanes: number;
-	numRows: number;
-} {
-	let timestampCount = new Map<number, number>();
+export function createTimeline<E, A, I>(
+	events: EventIn<E>[],
+	activities: ActivityIn<A>[],
+	intervals: IntervalIn<I>[],
+): { timeline: TimestampOut<E, A, I>[]; numLanes: number; numRows: number } {
+	const sortedTimestamps = getUniqueSortedTimestamps(events, activities, intervals);
 
-	intervals.forEach(({ start_time: start, end_time: end }) => {
-		timestampCount.set(start, (timestampCount.get(start) ?? 1) + 1);
-		timestampCount.set(end, timestampCount.get(end) ?? 1);
-	});
-
-	timestampCount = new Map(
-		timestampCount
-			.entries()
-			.toArray()
-			.sort((a, b) => a[0] - b[0]),
+	const timestampMap = new Map<number, TimestampInternal<E, A, I>>(
+		sortedTimestamps.map((t) => [t, { events: [], activities: [], intervals: [] }]),
 	);
+
+	events.forEach((v) => timestampMap.get(v.time)!.events.push(v));
+	activities.forEach((v) => timestampMap.get(v.start)!.activities.push(v));
+	intervals.forEach((v) => timestampMap.get(v.start)!.intervals.push(v));
 
 	const timestampRow = new Map<number, number>();
-
 	let sum = 0;
-	timestampCount.forEach((v, k) => {
-		timestampRow.set(k, sum + 1);
-		sum += v;
+	timestampMap.entries().forEach(([t, o]) => {
+		timestampRow.set(t, sum + 1);
+		// 1 in case the timestamp is only the end of some activities/intervals
+		sum += Math.max(o.events.length + o.intervals.length + 1, o.activities.length, 1);
 	});
 
-	interface TimelineMapItem {
-		places: Set<string>;
-		intervals: Omit<TimelineInterval, 'row' | 'col'>[];
-	}
-
-	const timestampMap = new Map<number, TimelineMapItem>(
-		timestampCount.keys().map((k) => [k, { places: new Set(), intervals: [] }]),
-	);
-
-	intervals.forEach((interval) => {
-		const { start_time, end_time, start_name, end_name } = interval;
-		timestampMap.get(start_time)!.places.add(start_name);
-		timestampMap.get(end_time)!.places.add(end_name);
-		timestampMap.get(start_time)!.intervals.push({
-			startRow: timestampRow.get(start_time)!,
-			endRow: timestampRow.get(end_time)!,
-			interval,
-		});
+	timestampMap.values().forEach((o) => {
+		o.activities.sort((a, b) => a.end - b.end);
+		o.intervals.sort((a, b) => a.end - b.end);
 	});
 
 	const lanePacker = createLanePacker();
 
-	return {
-		timeline: timestampMap
-			.entries()
-			.map(([timestamp, { places, intervals }]) => ({
-				timestamp,
-				row: timestampRow.get(timestamp)!,
-				place: places.values().toArray().join('/') ?? null,
-				intervals: intervals.map((int, i) => ({
-					...int,
-					row: timestampRow.get(timestamp)! + i + 1,
-					col: lanePacker.nextLane(int.startRow, int.endRow) + 1,
+	const timeline = timestampMap
+		.entries()
+		.map(([time, { events, activities, intervals }]) => {
+			const startRow = timestampRow.get(time)!;
+			return {
+				time,
+				events: events.map((v, i) => ({ ...v, row: startRow + i })),
+				activities: activities
+					.map((v, i) => ({
+						...v,
+						start: startRow + i,
+						end: timestampRow.get(v.end)!,
+					}))
+					.map((v) => ({ ...v, lane: lanePacker.nextLane(v.start, v.end) })),
+				intervals: intervals.map((v, i) => ({
+					...v,
+					start: startRow,
+					row: startRow + events.length,
+					end: timestampRow.get(v.end)!,
 				})),
-			}))
-			.toArray(),
+			};
+		})
+		.toArray();
+
+	return {
+		timeline,
 		numLanes: lanePacker.numLanes(),
 		numRows: sum,
 	};
+}
+
+function getUniqueSortedTimestamps<E, A, I>(
+	events: EventIn<E>[],
+	activities: ActivityIn<A>[],
+	intervals: IntervalIn<I>[],
+): number[] {
+	const timestampSet = new Set<number>();
+	events.forEach((v) => timestampSet.add(v.time));
+	activities.forEach((v) => timestampSet.add(v.start));
+	activities.forEach((v) => timestampSet.add(v.end));
+	intervals.forEach((v) => timestampSet.add(v.start));
+	intervals.forEach((v) => timestampSet.add(v.end));
+	return timestampSet.keys().toArray().sort();
 }
 
 function createLanePacker() {
