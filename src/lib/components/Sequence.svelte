@@ -1,7 +1,7 @@
 <script lang="ts">
 	import NodePicker from '$lib/components/NodePicker.svelte';
 	import { db, reactiveQuery, type Interval } from '$lib/db';
-	import type { EventIn, IntervalIn } from './timeline';
+	import { dummyData, type EventIn, type IntervalIn } from './timeline';
 	import Timeline from './Timeline.svelte';
 
 	interface Props {
@@ -32,29 +32,29 @@
 		),
 	);
 
-	let intervals: IntervalIn<number>[] = $derived(
-		($intervalStore ?? []).map((o) => ({
-			start: o.start_time,
-			end: o.end_time,
-			duration: o.end_time - o.start_time,
-			ref: o.id,
-		})),
-	);
+	// let intervals: IntervalIn<number>[] = $derived(
+	// 	($intervalStore ?? []).map((o) => ({
+	// 		start: o.start_time,
+	// 		end: o.end_time,
+	// 		duration: o.end_time - o.start_time,
+	// 		ref: o.id,
+	// 	})),
+	// );
 
-	let events: EventIn<number>[] = $derived(
-		($intervalStore ?? []).flatMap((o) => [
-			{
-				time: o.start_time,
-				label: o.start_name,
-				ref: o.id,
-			},
-			{
-				time: o.end_time,
-				label: o.end_name,
-				ref: o.id,
-			},
-		]),
-	);
+	// let events: EventIn<number>[] = $derived(
+	// 	($intervalStore ?? []).flatMap((o) => [
+	// 		{
+	// 			time: o.start_time,
+	// 			label: o.start_name,
+	// 			ref: o.id,
+	// 		},
+	// 		{
+	// 			time: o.end_time,
+	// 			label: o.end_name,
+	// 			ref: o.id,
+	// 		},
+	// 	]),
+	// );
 
 	let activeIntervalStore = $derived(
 		reactiveQuery(
@@ -110,10 +110,12 @@
 	async function cancelLastInterval() {
 		await db.deleteFrom('active_intervals').where('sequence_id', '=', id).execute();
 	}
+
+	const { events, activities, intervals } = dummyData();
 </script>
 
 <div class="container">
-	<Timeline {events} activities={[]} {intervals} />
+	<Timeline {events} {activities} {intervals} />
 	<button class="finish" onclick={cancelLastInterval}>Finish here</button>
 	<NodePicker onPicked={moveToNextInterval} />
 </div>

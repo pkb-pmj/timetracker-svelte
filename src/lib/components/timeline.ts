@@ -1,3 +1,5 @@
+import { toMillis } from '$lib/util';
+
 interface TimestampInternal<E, A, I> {
 	events: EventIn<E>[];
 	activities: ActivityIn<A>[];
@@ -142,5 +144,61 @@ function createLanePacker() {
 			}
 		},
 		numLanes: () => lastIndexes.length,
+	};
+}
+
+export function dummyData(): {
+	events: EventIn<unknown>[];
+	activities: ActivityIn<unknown>[];
+	intervals: IntervalIn<unknown>[];
+} {
+	return {
+		events: [
+			{
+				time: new Date('2026-03-08T19:24:00').valueOf(),
+				label: 'Event1',
+				ref: null,
+			},
+			{
+				time: new Date('2026-03-08T19:26:30').valueOf(),
+				label: 'Event1',
+				ref: null,
+			},
+			{
+				time: new Date('2026-03-08T19:31:10').valueOf(),
+				label: 'Event1',
+				ref: null,
+			},
+		],
+		activities: [
+			{
+				start: new Date('2026-03-08T19:24:00').valueOf(),
+				end: new Date('2026-03-08T19:31:10').valueOf(),
+				duration: toMillis(0, 7, 10),
+				label: 'Activity1',
+				ref: null,
+			},
+			{
+				start: new Date('2026-03-08T19:26:30').valueOf(),
+				end: new Date('2026-03-08T19:31:10').valueOf(),
+				duration: toMillis(0, 4, 40),
+				label: 'Activity1',
+				ref: null,
+			},
+		],
+		intervals: [
+			{
+				start: new Date('2026-03-08T19:24:00').valueOf(),
+				end: new Date('2026-03-08T19:26:30').valueOf(),
+				duration: toMillis(0, 2, 30),
+				ref: null,
+			},
+			{
+				start: new Date('2026-03-08T19:26:30').valueOf(),
+				end: new Date('2026-03-08T19:31:10').valueOf(),
+				duration: toMillis(0, 4, 40),
+				ref: null,
+			},
+		],
 	};
 }
