@@ -94,7 +94,7 @@ export function createTimeline<E, A, I>(
 						start: startRow + i,
 						end: timestampRow.get(v.end)!,
 					}))
-					.map((v) => ({ ...v, lane: lanePacker.nextLane(v.start, v.end) })),
+					.map((v) => ({ ...v, lane: lanePacker.nextLane(v.start, v.end) + 1 })),
 				intervals: intervals.map((v, i) => ({
 					...v,
 					start: startRow,
