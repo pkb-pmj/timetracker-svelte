@@ -40,42 +40,41 @@
 {/snippet}
 
 {#snippet timelineActivity(o: ActivityOut<unknown>)}
-	<li class="interval" style:grid-row={o.start}>
-		<span class="duration">{formatDuration(o.duration)}</span>
-		<div class="label-background left" style:grid-column-start="lane {o.lane}"></div>
-		<div class="label-background right">
-			<span class="label">{o.label}</span>
+	<li class="activity">
+		<div class="label-container" style:grid-row={o.start}>
+			<div class="label-background left">
+				<span class="label">{o.label}</span>
+			</div>
+			<div class="label-background right" style:grid-column-end="lane-end {o.lane}">
+				<span class="duration">{formatDuration(o.duration)}</span>
+			</div>
+		</div>
+		<div
+			class="line-container"
+			style:grid-row-start={o.start}
+			style:grid-row-end={o.end + 1}
+			style:grid-column-start="lane-start {o.lane}"
+			style:grid-column-end="lane-end {o.lane}"
+		>
+			{#if o.end - o.start > 1}
+				<div class="line middle"></div>
+			{/if}
+			<div class="line end"></div>
 		</div>
 	</li>
-	<div
-		class="interval line-container"
-		style:grid-row-start={o.start}
-		style:grid-row-end={o.end + 1}
-		style:grid-column="lane {o.lane}"
-	>
-		{#if o.end - o.start > 1}
-			<div class="line middle"></div>
-		{/if}
-		<div class="line end"></div>
-	</div>
 {/snippet}
 
 {#snippet timelineInterval(o: IntervalOut<unknown>)}
-	<li class="interval" style:grid-row={o.row}>
-		<span class="duration">{formatDuration(o.duration)}</span>
+	<li class="interval">
+		<span class="duration" style:grid-row={o.row}>{formatDuration(o.duration)}</span>
+		<div class="line-container" style:grid-row-start={o.start} style:grid-row-end={o.end + 1}>
+			<div class="line start"></div>
+			{#if o.end - o.start > 1}
+				<div class="line middle"></div>
+			{/if}
+			<div class="line end"></div>
+		</div>
 	</li>
-	<div
-		class="interval line-container"
-		style:grid-row-start={o.start}
-		style:grid-row-end={o.end + 1}
-		style:grid-column="timeline"
-	>
-		<div class="line start"></div>
-		{#if o.end - o.start > 1}
-			<div class="line middle"></div>
-		{/if}
-		<div class="line end"></div>
-	</div>
 {/snippet}
 
 <ul style:grid-template-rows="repeat({numRows}, auto)" style:--num-lanes={Math.max(numLanes, 1)}>
@@ -99,62 +98,87 @@
 		/* the other option would be min-content + manual padding in duration, */
 		/* both are equally manual and interdependent */
 		grid-template-columns:
-			[labels-left] auto
-			0.2rem
-			[timestamps] min-content
-			0.2rem
-			repeat(var(--num-lanes), [lane] min-content 0.2rem)
-			[timeline] 0.8rem
-			0.2rem
-			[labels-right] 1fr;
+			[activity-labels-start] 1fr
+			[activity-labels-end] 0.5rem
+			[activity-durations-start] min-content
+			[activity-durations-end] 0.5rem
+			repeat(var(--num-lanes), [lane-start] min-content [lane-end] 0.2rem)
+			[timeline-start] 0.8rem
+			[timeline-end] 0.2rem
+			[timestamps-start] min-content
+			[timestamps-end] 0.2rem
+			[event-labels] 1fr;
 	}
 
 	/* inherit columns from <ul>, contain children in one row without explicit grid-row */
-	li {
+	li.event {
 		grid-column: 1 / -1;
 		display: grid;
 		grid-template-columns: subgrid;
 		align-items: center;
 	}
 
-	.interval .label-background {
+	li.activity,
+	li.interval {
+		display: contents;
+	}
+
+	.activity .label-container {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: subgrid;
+	}
+
+	.activity .label-background {
 		grid-row: 1;
-		/* display: grid; */
 		align-self: stretch;
-		/* grid-template-columns: subgrid; */
+		display: grid;
+		align-items: center;
 		background-color: rgba(0, 128, 0, 0.1);
-		/* border: 1.5px solid green; */
+		border: 1.5px solid green;
 	}
-	.label-background.left {
-		grid-column-end: labels-right;
-		border-left: 1.5px solid green;
+	.activity .label-background.left {
+		grid-column-start: activity-labels-start;
+		grid-column-end: activity-labels-end;
+		justify-self: right;
+		padding-left: 0.5rem;
 		border-right: none;
-		border-top-left-radius: 1rem;
-		border-bottom-left-radius: 0;
-		border-left-width: 4px;
+		border-top-left-radius: 0.3rem;
+		border-bottom-left-radius: 0.3rem;
 	}
-	.label-background.right {
-		grid-column: labels-right;
-		justify-self: left;
-		padding-right: 0.5rem;
+	.activity .label-background.right {
+		grid-column-start: activity-labels-end;
+		grid-template-columns: subgrid;
+		border-right: 1.5px solid green;
 		border-left: none;
-		border-top-right-radius: 0.5rem;
-		border-bottom-right-radius: 0.5rem;
+		border-top-right-radius: 0.75rem;
+		border-bottom-right-radius: 0;
+		border-right-width: 4px;
+	}
+
+	.activity .duration {
+		grid-column: activity-durations-start;
 	}
 
 	.time,
 	.duration {
-		grid-column: timestamps;
 		grid-row: 1;
 		font-size: 0.75rem;
-		text-align: right;
+		text-align: left;
 		/* equal width digits */
 		font-variant-numeric: tabular-nums;
 	}
 
 	.time {
-		/* 8 characters - hh:mm:ss TODO: different time formats */
-		width: 8ch;
+		grid-column: timestamps-start / timestamps-end;
+	}
+
+	.interval .duration {
+		grid-column: timeline-end / timestamps-end;
+	}
+
+	.interval .line-container {
+		grid-column: timeline;
 	}
 
 	.line-container {
@@ -226,6 +250,6 @@
 
 	.label {
 		grid-row: 1;
-		grid-column: labels-right;
+		grid-column: event-labels;
 	}
 </style>
