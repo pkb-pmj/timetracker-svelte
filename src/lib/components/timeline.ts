@@ -157,7 +157,12 @@ export function dummyData(): {
 		events: [
 			{
 				time: new Date('2026-03-08T19:24:00').valueOf(),
-				label: 'Event1',
+				label: 'Event1a',
+				ref: null,
+			},
+			{
+				time: new Date('2026-03-08T19:24:00').valueOf(),
+				label: 'Event1b',
 				ref: null,
 			},
 			{
@@ -184,6 +189,13 @@ export function dummyData(): {
 				end: new Date('2026-03-08T19:31:10').valueOf(),
 				duration: toMillis(0, 4, 40),
 				label: 'Activity1',
+				ref: null,
+			},
+			{
+				start: new Date('2026-03-08T19:25:15').valueOf(),
+				end: new Date('2026-03-08T19:28:15').valueOf(),
+				duration: toMillis(0, 3, 0),
+				label: 'Activity3',
 				ref: null,
 			},
 		],
