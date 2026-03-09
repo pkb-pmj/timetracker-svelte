@@ -99,157 +99,139 @@
 		/* both are equally manual and interdependent */
 		grid-template-columns:
 			[activity-labels-start] 1fr
-			[activity-labels-end] 0.5rem
+			[activity-labels-end] 0.4rem
 			[activity-durations-start] min-content
-			[activity-durations-end] 0.5rem
+			[activity-durations-end] 0.4rem
 			repeat(var(--num-lanes), [lane-start] min-content [lane-end] 0.2rem)
-			[timeline-start] 0.8rem
+			[timeline-start] 0.6rem
 			[timeline-end] 0.2rem
 			[timestamps-start] min-content
-			[timestamps-end] 0.2rem
-			[event-labels] 1fr;
+			[timestamps-end] 0.4rem
+			[event-labels-start] 1fr
+			[event-labels-end];
 	}
-
 	/* inherit columns from <ul>, contain children in one row without explicit grid-row */
-	li.event {
-		grid-column: 1 / -1;
-		display: grid;
-		grid-template-columns: subgrid;
-		align-items: center;
+	li {
+		&.event {
+			grid-column: 1 / -1;
+			display: grid;
+			grid-template-columns: subgrid;
+			align-items: center;
+		}
+		&.activity,
+		&.interval {
+			display: contents;
+		}
 	}
-
-	li.activity,
-	li.interval {
-		display: contents;
+	.event {
+		.label {
+			grid-row: 1;
+			grid-column: event-labels;
+		}
 	}
-
-	.activity .label-container {
-		grid-column: 1 / -1;
-		display: grid;
-		grid-template-columns: subgrid;
+	.activity {
+		.label-container {
+			grid-column: 1 / -1;
+			display: grid;
+			grid-template-columns: subgrid;
+		}
+		.label-background {
+			grid-row: 1;
+			align-self: stretch;
+			display: grid;
+			align-items: center;
+			background-color: rgba(0, 128, 0, 0.1);
+			border: 1.5px solid green;
+			&.left {
+				grid-column-start: activity-labels-start;
+				grid-column-end: activity-labels-end;
+				justify-self: right;
+				padding-left: 0.5rem;
+				border-right: none;
+				border-top-left-radius: 0.3rem;
+				border-bottom-left-radius: 0.3rem;
+			}
+			&.right {
+				grid-column-start: activity-labels-end;
+				grid-template-columns: subgrid;
+				border-right: 1.5px solid green;
+				border-left: none;
+				border-top-right-radius: 0.75rem;
+				border-bottom-right-radius: 0;
+				border-right-width: 4px;
+			}
+		}
 	}
-
-	.activity .label-background {
-		grid-row: 1;
-		align-self: stretch;
-		display: grid;
-		align-items: center;
-		background-color: rgba(0, 128, 0, 0.1);
-		border: 1.5px solid green;
-	}
-	.activity .label-background.left {
-		grid-column-start: activity-labels-start;
-		grid-column-end: activity-labels-end;
-		justify-self: right;
-		padding-left: 0.5rem;
-		border-right: none;
-		border-top-left-radius: 0.3rem;
-		border-bottom-left-radius: 0.3rem;
-	}
-	.activity .label-background.right {
-		grid-column-start: activity-labels-end;
-		grid-template-columns: subgrid;
-		border-right: 1.5px solid green;
-		border-left: none;
-		border-top-right-radius: 0.75rem;
-		border-bottom-right-radius: 0;
-		border-right-width: 4px;
-	}
-
-	.activity .duration {
-		grid-column: activity-durations-start;
-	}
-
 	.time,
 	.duration {
-		grid-row: 1;
 		font-size: 0.75rem;
 		text-align: left;
 		/* equal width digits */
 		font-variant-numeric: tabular-nums;
+		/* more compact? */
+		/* line-height: 1; */
 	}
-
 	.time {
 		grid-column: timestamps-start / timestamps-end;
 	}
-
-	.interval .duration {
-		grid-column: timeline-end / timestamps-end;
+	.duration {
+		.activity & {
+			grid-column: activity-durations-start / activity-durations-start;
+		}
+		.interval & {
+			grid-column: timeline-end / event-labels-end;
+		}
 	}
-
-	.interval .line-container {
-		grid-column: timeline;
-	}
-
 	.line-container {
 		display: grid;
 		grid-template-rows: subgrid;
 		justify-self: center;
 		align-self: stretch;
+		.interval & {
+			grid-column: timeline;
+		}
 	}
-
 	.line {
-		border-left: 4px solid green;
 		z-index: -1;
+		.activity & {
+			border-left: 4px solid green;
+		}
+		.interval & {
+			border-left: 1.5px solid black;
+		}
+		&.start {
+			grid-row: 1;
+			height: 50%;
+			align-self: end;
+		}
+		&.middle {
+			grid-row: 2 / -2;
+		}
+		&.end {
+			grid-row: -1;
+			height: 50%;
+			align-self: start;
+			.activity & {
+				border-bottom-left-radius: 2px;
+				border-bottom-right-radius: 2px;
+			}
+		}
 	}
-
-	.line.start {
-		grid-row: 1;
-		height: 50%;
-		align-self: end;
-		border-top-left-radius: 2px;
-		border-top-right-radius: 2px;
-		border-bottom: none;
-	}
-
-	.line.middle {
-		grid-row: 2 / -2;
-		border-top: none;
-		border-bottom: none;
-	}
-
-	.line.end {
-		grid-row: -1;
-		height: 50%;
-		align-self: start;
-		border-bottom-left-radius: 2px;
-		border-bottom-right-radius: 2px;
-		border-top: none;
-	}
-
 	.marker {
 		grid-column: timeline;
 		grid-row: 1;
 		place-self: center;
-	}
-
-	.marker.circle {
-		border-radius: 50%;
-		border: 1.5px solid black;
-		background-color: white;
-		width: 0.6rem;
-		height: 0.6rem;
-	}
-
-	.marker.tick {
-		border-top: 1.5px solid black;
-		width: 0.6rem;
-		height: 0;
-	}
-
-	/* color active interval differently */
-	.live {
-		color: #08f;
-		font-style: italic;
-	}
-
-	.live .marker,
-	.live .line {
-		border-color: #08f;
-	}
-
-	.label {
-		grid-row: 1;
-		grid-column: event-labels;
+		&.circle {
+			border-radius: 50%;
+			border: 1.5px solid black;
+			background-color: white;
+			width: 0.6rem;
+			height: 0.6rem;
+		}
+		&.tick {
+			border-top: 1.5px solid black;
+			width: 0.6rem;
+			height: 0;
+		}
 	}
 </style>
