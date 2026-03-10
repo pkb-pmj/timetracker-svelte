@@ -78,9 +78,11 @@
 {/snippet}
 
 <ul style:grid-template-rows="repeat({numRows}, auto)" style:--num-lanes={Math.max(numLanes, 1)}>
-	{#each timeline as { time, events, activities, intervals }}
+	{#each timeline as { time, row, events, activities, intervals }}
 		{#each events as event}
 			{@render timelineEvent(event)}
+		{:else}
+			{@render timelineTick(row, time)}
 		{/each}
 		{#each activities as activity}
 			{@render timelineActivity(activity)}
@@ -134,6 +136,7 @@
 			grid-column: 1 / -1;
 			display: grid;
 			grid-template-columns: subgrid;
+			margin-top: 0.5rem;
 		}
 		.label-background {
 			grid-row: 1;
@@ -230,7 +233,8 @@
 		}
 		&.tick {
 			border-top: 1.5px solid black;
-			width: 0.6rem;
+			width: 0.3rem;
+			justify-self: right;
 			height: 0;
 		}
 	}

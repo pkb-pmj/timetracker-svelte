@@ -8,6 +8,7 @@ interface TimestampInternal<E, A, I> {
 
 export interface TimestampOut<E, A, I> {
 	time: number;
+	row: number;
 	events: EventOut<E>[];
 	activities: ActivityOut<A>[];
 	intervals: IntervalOut<I>[];
@@ -71,7 +72,7 @@ export function createTimeline<E, A, I>(
 	timestampMap.entries().forEach(([t, o]) => {
 		timestampRow.set(t, sum + 1);
 		// 1 in case the timestamp is only the end of some activities/intervals
-		sum += Math.max(o.events.length + o.intervals.length + 1, o.activities.length, 1);
+		sum += Math.max(o.events.length + o.intervals.length, o.activities.length, 1);
 	});
 
 	timestampMap.values().forEach((o) => {
@@ -87,6 +88,7 @@ export function createTimeline<E, A, I>(
 			const startRow = timestampRow.get(time)!;
 			return {
 				time,
+				row: startRow,
 				events: events.map((v, i) => ({ ...v, row: startRow + i })),
 				activities: activities
 					.map((v, i) => ({
