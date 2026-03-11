@@ -15,6 +15,23 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	await db.schema
+		.createTable('events')
+		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+		.addColumn('time', 'integer', (col) => col.notNull())
+		.addColumn('node_id', 'integer', (col) => col.references('nodes.id').notNull())
+		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
+		.execute();
+
+	await db.schema
+		.createTable('activities')
+		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+		.addColumn('start_time', 'integer', (col) => col.notNull())
+		.addColumn('end_time', 'integer', (col) => col.notNull())
+		.addColumn('node_id', 'integer', (col) => col.references('nodes.id').notNull())
+		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
+		.execute();
+
+	await db.schema
 		.createTable('intervals')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
 		.addColumn('start_time', 'integer', (col) => col.notNull())

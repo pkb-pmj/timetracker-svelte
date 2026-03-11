@@ -5,6 +5,21 @@ export interface Node {
 	name: string;
 }
 
+export interface Event {
+	id: Generated<number>;
+	time: number;
+	node_id: number;
+	sequence_id: number;
+}
+
+export interface Activity {
+	id: Generated<number>;
+	start_time: number;
+	end_time: number;
+	node_id: number;
+	sequence_id: number;
+}
+
 export interface Interval {
 	id: Generated<number>;
 	start_time: number;
@@ -34,6 +49,8 @@ export enum SequenceStatus {
 
 export interface DB {
 	nodes: Node;
+	events: Event;
+	activities: Activity;
 	intervals: Interval;
 	active_intervals: ActiveInterval;
 	sequences: Sequence;
