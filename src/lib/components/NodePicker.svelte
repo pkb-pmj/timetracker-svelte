@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { pushState } from '$app/navigation';
-	import { page } from '$app/state';
 	import { db, type Node } from '$lib/db';
 	import type { Selectable } from 'kysely';
 	import type { Attachment } from 'svelte/attachments';
+	import Modal from './Modal.svelte';
 
 	let { onPicked }: { onPicked: (id: number) => void } = $props();
 
@@ -43,7 +42,6 @@
 	});
 
 	let inputEl = $state<HTMLInputElement | null>(null);
-	let dialogEl = $state<HTMLDialogElement | null>(null);
 
 	function moveActiveOption(step: number) {
 		if (activeId === null) {
@@ -57,11 +55,9 @@
 	function selectOption(id: number) {
 		activeId = id;
 		selected = nodes.find((node) => node.id === id) ?? null;
-		dialogEl?.close();
+		modal?.close();
 		onPicked(id);
 	}
-
-	$inspect(activeId);
 
 	function onKeyDown(e: KeyboardEvent) {
 		if (e.key === 'ArrowUp') {
@@ -76,34 +72,16 @@
 		}
 	}
 
-	function onClickOutside(e: MouseEvent) {
-		if (e.target === dialogEl) dialogEl?.close();
-	}
-
-	// TODO: a less hacky way to do this..? And be careful when integrating this with other modals
-	function showModal() {
-		// only push state if it isn't already set to 'NodePicker'
-		// when user opens model, closes, navigates forward and opens modal again,
-		// this prevents duplicate entries and allows closing modal on 1st "back", not 2nd
-		if (page.state.modal !== 'NodePicker') pushState('', { modal: 'NodePicker' });
-		dialogEl?.showModal();
-	}
-
-	$effect(() => {
-		// only close on "back", don't open on "forward"
-		if (page.state.modal !== 'NodePicker') dialogEl?.close();
-	});
-
-	function onclose() {
+	function onClose() {
 		activeId = null;
 		query = '';
-		// update history if closed in other way than navigating back
-		if (page.state.modal === 'NodePicker') history.back();
 	}
+
+	let modal: Modal | null = null;
 </script>
 
-<button onclick={showModal}>Now at {selected?.name ?? '?'}</button>
-<dialog bind:this={dialogEl} onclick={onClickOutside} {onclose}>
+<button onclick={() => modal?.open()}>Now at {selected?.name ?? '?'}</button>
+<Modal bind:this={modal} id="NodePicker" {onClose}>
 	<div class="combobox">
 		<!-- svelte-ignore a11y_autofocus -->
 		<input
@@ -140,31 +118,9 @@
 			{/each}
 		</ul>
 	</div>
-</dialog>
+</Modal>
 
 <style>
-	dialog {
-		padding: 0;
-		border: none;
-		border-radius: 1rem;
-		width: 80%;
-		max-width: 600px;
-		margin: 4rem auto;
-		transform: translateY(100%);
-		transition: transform 150ms ease-out;
-		max-height: calc(100dvh - 4rem);
-		flex-direction: column;
-	}
-
-	dialog[open] {
-		transform: translateY(0);
-		display: flex;
-	}
-
-	dialog::backdrop {
-		background: rgba(0, 0, 0, 0.3);
-	}
-
 	.combobox {
 		display: flex;
 		flex-direction: column;
