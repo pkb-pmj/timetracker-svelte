@@ -47,8 +47,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('start_time', 'integer', (col) => col.notNull())
 		.addColumn('start_node_id', 'integer', (col) => col.references('nodes.id').notNull())
 		.addColumn('end_node_id', 'integer', (col) => col.references('nodes.id'))
-		// TODO: enforce one-to-one
-		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
+		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull().unique())
 		.execute();
 }
 
