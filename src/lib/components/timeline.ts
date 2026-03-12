@@ -1,10 +1,12 @@
 import { toMillis } from '$lib/util';
 
-interface TimestampInternal<E, A, I> {
+export interface ItemsIn<E, A, I> {
 	events: EventIn<E>[];
 	activities: ActivityIn<A>[];
 	intervals: IntervalIn<I>[];
 }
+
+interface TimestampInternal<E, A, I> extends ItemsIn<E, A, I> {}
 
 export interface TimestampOut<E, A, I> {
 	time: number;
