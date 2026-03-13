@@ -31,6 +31,19 @@
 
 	let activeInterval = $derived($activeIntervalStore?.at(0) ?? null);
 
+	async function createEvent(node_id: number) {
+		await db
+			.insertInto('events')
+			.values({
+				time: Date.now(),
+				node_id,
+				sequence_id: id,
+			})
+			.returning('id')
+			.executeTakeFirstOrThrow();
+		invalidate('db');
+	}
+
 	async function moveToNextInterval(node_id: number) {
 		const time = Date.now();
 
@@ -74,6 +87,7 @@
 	<Timeline {events} {activities} {intervals} />
 	<button class="finish" onclick={cancelLastInterval}>Finish here</button>
 	<NodePicker onPicked={moveToNextInterval} />
+	<NodePicker onPicked={createEvent} />
 </div>
 
 <style>
