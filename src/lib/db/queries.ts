@@ -44,12 +44,50 @@ async function getIntervals(q: QueryCreator<DB>, sequenceId: number) {
 		.execute();
 }
 
+async function getIntervalRanges(q: QueryCreator<DB>, sequenceId: number) {
+	return await q
+		.selectFrom('intervals')
+		.select(['id', 'start_time as startTime', 'end_time as endTime'])
+		.where('sequence_id', '=', sequenceId)
+		.orderBy('start_time', 'asc')
+		.execute();
+}
+
+async function getIntervalEndpoints(q: QueryCreator<DB>, sequenceId: number) {
+	const starts = q
+		.selectFrom('nodes')
+		.innerJoin('intervals', 'intervals.start_node_id', 'nodes.id')
+		.select([
+			'nodes.id as nodeId',
+			// 'intervals.id',
+			'intervals.start_time as time',
+			'nodes.name as name',
+		]);
+	const ends = q
+		.selectFrom('nodes')
+		.innerJoin('intervals', 'intervals.end_node_id', 'nodes.id')
+		.select([
+			'nodes.id as nodeId',
+			// 'intervals.id',
+			'intervals.end_time as time',
+			'nodes.name as name',
+		]);
+	return await starts
+		.union(ends)
+		.where('intervals.sequence_id', '=', sequenceId)
+		.orderBy('time', 'asc')
+		.execute();
+}
+
 export async function getItems(sequenceId: number): Promise<ItemsIn<number, number, number>> {
-	const { events, intervals, activities } = await db.transaction().execute(async (tx) => ({
-		events: await getEvents(tx, sequenceId),
-		activities: await getActivities(tx, sequenceId),
-		intervals: await getIntervals(tx, sequenceId),
-	}));
+	const { events, activities, intervalRanges, intervalEndpoints } = await db
+		.transaction()
+		.execute(async (tx) => ({
+			events: await getEvents(tx, sequenceId),
+			activities: await getActivities(tx, sequenceId),
+			intervalRanges: await getIntervalRanges(tx, sequenceId),
+			intervalEndpoints: await getIntervalEndpoints(tx, sequenceId),
+		}));
 
 	return {
 		events: [
@@ -58,18 +96,14 @@ export async function getItems(sequenceId: number): Promise<ItemsIn<number, numb
 				label: o.name,
 				ref: o.id,
 			})),
-			...intervals.map((o) => ({
-				time: o.startTime,
-				label: o.startName,
-				ref: o.id,
-			})),
-			...intervals.map((o) => ({
-				time: o.endTime,
-				label: o.endName,
-				ref: o.id,
+			// TODO: handle end/start interval ids better (= at all)
+			...intervalEndpoints.map((o) => ({
+				time: o.time,
+				label: o.name,
+				ref: o.nodeId,
 			})),
 		].sort((a, b) => a.time - b.time),
-		intervals: intervals.map((o) => ({
+		intervals: intervalRanges.map((o) => ({
 			start: o.startTime,
 			end: o.endTime,
 			duration: o.endTime - o.startTime,
