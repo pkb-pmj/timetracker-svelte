@@ -86,8 +86,8 @@
 <div class="container">
 	<Timeline {events} {activities} {intervals} />
 	<button class="finish" onclick={cancelLastInterval}>Finish here</button>
-	<NodePicker onPicked={moveToNextInterval} />
-	<NodePicker onPicked={createEvent} />
+	<span>Place: <NodePicker onPicked={moveToNextInterval} /></span>
+	<span>Event: <NodePicker onPicked={createEvent} /></span>
 </div>
 
 <style>

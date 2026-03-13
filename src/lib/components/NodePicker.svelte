@@ -80,7 +80,7 @@
 	let modal: Modal | null = null;
 </script>
 
-<button onclick={() => modal?.open()}>Now at {selected?.name ?? '?'}</button>
+<button onclick={() => modal?.open()}>{selected?.name ?? 'select'}</button>
 <Modal bind:this={modal} id="NodePicker" {onClose}>
 	<div class="combobox">
 		<!-- svelte-ignore a11y_autofocus -->
