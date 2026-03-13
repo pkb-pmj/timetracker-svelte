@@ -1,7 +1,7 @@
 <script lang="ts">
 	import NodePicker from '$lib/components/NodePicker.svelte';
-	import { db, reactiveQuery, type Interval } from '$lib/db';
-	import { dummyData, type EventIn, type IntervalIn } from './timeline';
+	import { db, depends, invalidate, reactiveQuery } from '$lib/db';
+	import { getItems } from '$lib/db/queries';
 	import Timeline from './Timeline.svelte';
 
 	interface Props {
@@ -9,52 +9,6 @@
 	}
 
 	let { id }: Props = $props();
-
-	// TODO: wrapper function for reactiveQuery that does this internally
-	let intervalStore = $derived(
-		reactiveQuery(
-			db
-				.selectFrom('intervals')
-				.innerJoin('nodes as start_node', 'start_node.id', 'intervals.start_node_id')
-				.innerJoin('nodes as end_node', 'end_node.id', 'intervals.end_node_id')
-				.select([
-					'intervals.id',
-					'intervals.start_time',
-					'intervals.end_time',
-					'start_node.id as start_id',
-					'start_node.name as start_name',
-					'end_node.id as end_id',
-					'end_node.name as end_name',
-				])
-				.where('sequence_id', '=', id)
-				.orderBy('start_time', 'asc')
-				.compile(),
-		),
-	);
-
-	// let intervals: IntervalIn<number>[] = $derived(
-	// 	($intervalStore ?? []).map((o) => ({
-	// 		start: o.start_time,
-	// 		end: o.end_time,
-	// 		duration: o.end_time - o.start_time,
-	// 		ref: o.id,
-	// 	})),
-	// );
-
-	// let events: EventIn<number>[] = $derived(
-	// 	($intervalStore ?? []).flatMap((o) => [
-	// 		{
-	// 			time: o.start_time,
-	// 			label: o.start_name,
-	// 			ref: o.id,
-	// 		},
-	// 		{
-	// 			time: o.end_time,
-	// 			label: o.end_name,
-	// 			ref: o.id,
-	// 		},
-	// 	]),
-	// );
 
 	let activeIntervalStore = $derived(
 		reactiveQuery(
@@ -105,13 +59,15 @@
 				.set({ start_node_id: node_id, start_time: time })
 				.execute();
 		});
+
+		invalidate('db');
 	}
 
 	async function cancelLastInterval() {
 		await db.deleteFrom('active_intervals').where('sequence_id', '=', id).execute();
 	}
 
-	const { events, activities, intervals } = dummyData();
+	let { events, activities, intervals } = $derived(await depends('db', getItems(id)));
 </script>
 
 <div class="container">
