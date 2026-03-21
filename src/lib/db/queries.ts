@@ -106,13 +106,11 @@ export async function getItems(sequenceId: number): Promise<ItemsIn<number, numb
 		intervals: intervalRanges.map((o) => ({
 			start: o.startTime,
 			end: o.endTime,
-			duration: o.endTime - o.startTime,
 			ref: o.id,
 		})),
 		activities: activities.map((o) => ({
 			start: o.startTime,
 			end: o.endTime,
-			duration: o.endTime - o.startTime,
 			label: o.name,
 			ref: o.id,
 		})),
