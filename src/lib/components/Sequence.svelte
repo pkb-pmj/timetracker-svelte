@@ -16,12 +16,35 @@
 		invalidate('db');
 	}
 
+	async function createActivity(node_id: number) {
+		await db
+			.insertInto('activities')
+			.values({
+				node_id,
+				start_time: Date.now(),
+				end_time: null,
+			})
+			.executeTakeFirstOrThrow();
+		invalidate('db');
+	}
+
+	async function finishAllActivities() {
+		await db
+			.updateTable('activities')
+			.set({ end_time: Date.now() })
+			.where('end_time', 'is', null)
+			.execute();
+		invalidate('db');
+	}
+
 	let { events, activities, intervals } = $derived(await depends('db', getItems()));
 </script>
 
 <div class="container">
 	<Timeline {events} {activities} {intervals} />
 	<span>Event: <NodePicker onPicked={createEvent} /></span>
+	<span>Start Activity: <NodePicker onPicked={createActivity} /></span>
+	<button onclick={finishAllActivities}>End All Activities</button>
 </div>
 
 <style>
