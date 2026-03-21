@@ -175,6 +175,7 @@
 	.duration {
 		.activity & {
 			grid-column: activity-durations-start / activity-durations-start;
+			width: 5.5ch;
 		}
 		.interval & {
 			grid-column: timeline-end / event-labels-end;
