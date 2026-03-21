@@ -110,7 +110,7 @@
 	}
 	li {
 		&.event {
-			grid-column: 1 / -1;
+			grid-column: timeline-start / event-labels-end;
 			display: grid;
 			grid-template-columns: subgrid;
 			align-items: center;
@@ -128,7 +128,7 @@
 	}
 	.activity {
 		.label-container {
-			grid-column: 1 / -1;
+			grid-column: activity-labels-start / lane-end -1;
 			display: grid;
 			grid-template-columns: subgrid;
 			margin-top: 0.5rem;
