@@ -8,18 +8,10 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	await db.schema
-		.createTable('sequences')
-		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-		// TODO: check constraint?
-		.addColumn('status', 'integer', (col) => col.notNull())
-		.execute();
-
-	await db.schema
 		.createTable('events')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
 		.addColumn('time', 'integer', (col) => col.notNull())
 		.addColumn('node_id', 'integer', (col) => col.references('nodes.id').notNull())
-		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
 		.execute();
 
 	await db.schema
@@ -28,7 +20,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('start_time', 'integer', (col) => col.notNull())
 		.addColumn('end_time', 'integer', (col) => col.notNull())
 		.addColumn('node_id', 'integer', (col) => col.references('nodes.id').notNull())
-		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
 		.execute();
 
 	await db.schema
@@ -38,7 +29,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('end_time', 'integer', (col) => col.notNull())
 		.addColumn('start_node_id', 'integer', (col) => col.references('nodes.id').notNull())
 		.addColumn('end_node_id', 'integer', (col) => col.references('nodes.id').notNull())
-		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull())
 		.execute();
 
 	await db.schema
@@ -47,13 +37,11 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('start_time', 'integer', (col) => col.notNull())
 		.addColumn('start_node_id', 'integer', (col) => col.references('nodes.id').notNull())
 		.addColumn('end_node_id', 'integer', (col) => col.references('nodes.id'))
-		.addColumn('sequence_id', 'integer', (col) => col.references('sequences.id').notNull().unique())
 		.execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropTable('active_intervals').execute();
 	await db.schema.dropTable('intervals').execute();
-	await db.schema.dropTable('sequences').execute();
 	await db.schema.dropTable('nodes').execute();
 }

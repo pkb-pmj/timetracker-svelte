@@ -4,12 +4,6 @@
 	import { getItems } from '$lib/db/queries';
 	import Timeline from './Timeline.svelte';
 
-	interface Props {
-		id: number;
-	}
-
-	let { id }: Props = $props();
-
 	let activeIntervalStore = $derived(
 		reactiveQuery(
 			db
@@ -24,7 +18,6 @@
 					'end_node.id as end_id',
 					'end_node.name as end_name',
 				])
-				.where('sequence_id', '=', id)
 				.compile(),
 		),
 	);
@@ -37,7 +30,6 @@
 			.values({
 				time: Date.now(),
 				node_id,
-				sequence_id: id,
 			})
 			.returning('id')
 			.executeTakeFirstOrThrow();
@@ -50,7 +42,6 @@
 		await db.transaction().execute(async (trx) => {
 			const activeInterval = await trx
 				.selectFrom('active_intervals')
-				.where('sequence_id', '=', id)
 				.selectAll()
 				// TODO: make sure somewhere that it does exist
 				.executeTakeFirstOrThrow();
@@ -62,13 +53,11 @@
 					start_time: activeInterval.start_time,
 					end_node_id: node_id,
 					end_time: time,
-					sequence_id: id,
 				})
 				.execute();
 
 			await trx
 				.updateTable('active_intervals')
-				.where('sequence_id', '=', id)
 				.set({ start_node_id: node_id, start_time: time })
 				.execute();
 		});
@@ -77,10 +66,10 @@
 	}
 
 	async function cancelLastInterval() {
-		await db.deleteFrom('active_intervals').where('sequence_id', '=', id).execute();
+		await db.deleteFrom('active_intervals').execute();
 	}
 
-	let { events, activities, intervals } = $derived(await depends('db', getItems(id)));
+	let { events, activities, intervals } = $derived(await depends('db', getItems()));
 </script>
 
 <div class="container">

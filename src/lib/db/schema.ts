@@ -9,7 +9,6 @@ export interface Event {
 	id: Generated<number>;
 	time: number;
 	node_id: number;
-	sequence_id: number;
 }
 
 export interface Activity {
@@ -17,7 +16,6 @@ export interface Activity {
 	start_time: number;
 	end_time: number;
 	node_id: number;
-	sequence_id: number;
 }
 
 export interface Interval {
@@ -26,7 +24,6 @@ export interface Interval {
 	end_time: number;
 	start_node_id: number;
 	end_node_id: number;
-	sequence_id: number;
 }
 
 export interface ActiveInterval {
@@ -34,17 +31,6 @@ export interface ActiveInterval {
 	start_time: number;
 	start_node_id: number;
 	end_node_id: number | null;
-	sequence_id: number;
-}
-
-export interface Sequence {
-	id: Generated<number>;
-	status: SequenceStatus;
-}
-
-export enum SequenceStatus {
-	ACTIVE = 1,
-	FINISHED = 2,
 }
 
 export interface DB {
@@ -53,5 +39,4 @@ export interface DB {
 	activities: Activity;
 	intervals: Interval;
 	active_intervals: ActiveInterval;
-	sequences: Sequence;
 }
