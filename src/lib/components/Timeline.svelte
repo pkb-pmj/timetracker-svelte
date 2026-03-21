@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { formatDuration, formatTime, timeNow } from '$lib/util';
-	import { durationNow } from '$lib/util';
+	import { formatDuration, formatTime } from '$lib/util';
 	import {
 		createTimeline,
 		type ActivityIn,
