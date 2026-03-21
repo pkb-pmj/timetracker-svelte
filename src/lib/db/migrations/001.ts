@@ -43,5 +43,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropTable('active_intervals').execute();
 	await db.schema.dropTable('intervals').execute();
+	await db.schema.dropTable('activities').execute();
+	await db.schema.dropTable('events').execute();
 	await db.schema.dropTable('nodes').execute();
 }
