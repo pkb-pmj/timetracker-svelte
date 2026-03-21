@@ -95,9 +95,6 @@
 <style>
 	ul {
 		display: grid;
-		/* 0.8rem instead of min-content, handles padding for durations */
-		/* the other option would be min-content + manual padding in duration, */
-		/* both are equally manual and interdependent */
 		grid-template-columns:
 			[activity-labels-start] 1fr
 			[activity-labels-end] 0.4rem
@@ -111,7 +108,6 @@
 			[event-labels-start] 1fr
 			[event-labels-end];
 	}
-	/* inherit columns from <ul>, contain children in one row without explicit grid-row */
 	li {
 		&.event {
 			grid-column: 1 / -1;
