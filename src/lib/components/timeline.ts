@@ -1,4 +1,4 @@
-import { toMillis } from '$lib/util';
+import { cmpNullLast, durationNow } from '$lib/util';
 
 export interface ItemsIn<E, A, I> {
 	events: EventIn<E>[];
@@ -18,8 +18,7 @@ export interface TimestampOut<E, A, I> {
 
 export interface ActivityIn<T> {
 	start: number;
-	end: number;
-	duration: number;
+	end: number | null;
 	label: string;
 	ref: T;
 }
@@ -28,19 +27,22 @@ export interface ActivityOut<T> {
 	start: number;
 	end: number;
 	lane: number;
-	duration: number;
+	duration: () => number;
 	label: string;
 	ref: T;
 }
 
 export interface IntervalIn<T> {
 	start: number;
-	end: number;
-	duration: number;
+	end: number | null;
 	ref: T;
 }
 
-export interface IntervalOut<T> extends IntervalIn<T> {
+export interface IntervalOut<T> {
+	start: number;
+	end: number;
+	duration: () => number;
+	ref: T;
 	row: number;
 }
 
@@ -69,17 +71,19 @@ export function createTimeline<E, A, I>(
 	activities.forEach((v) => timestampMap.get(v.start)!.activities.push(v));
 	intervals.forEach((v) => timestampMap.get(v.start)!.intervals.push(v));
 
-	const timestampRow = new Map<number, number>();
+	const timestampRow = new Map<number | null, number>();
 	let sum = 0;
 	timestampMap.entries().forEach(([t, o]) => {
 		timestampRow.set(t, sum + 1);
 		// 1 in case the timestamp is only the end of some activities/intervals
 		sum += Math.max(o.events.length + o.intervals.length, o.activities.length, 1);
 	});
+	timestampRow.set(null, sum + 1);
+	sum++;
 
 	timestampMap.values().forEach((o) => {
-		o.activities.sort((a, b) => a.end - b.end);
-		o.intervals.sort((a, b) => a.end - b.end);
+		o.activities.sort((a, b) => cmpNullLast(a.end, b.end));
+		o.intervals.sort((a, b) => cmpNullLast(a.end, b.end));
 	});
 
 	const lanePacker = createLanePacker();
@@ -97,6 +101,7 @@ export function createTimeline<E, A, I>(
 						...v,
 						start: startRow + i,
 						end: timestampRow.get(v.end)!,
+						duration: () => (v.end !== null ? v.end - v.start : durationNow(v.start)),
 					}))
 					.map((v) => ({ ...v, lane: lanePacker.nextLane(v.start, v.end) + 1 })),
 				intervals: intervals.map((v) => ({
@@ -105,6 +110,7 @@ export function createTimeline<E, A, I>(
 					start: startRow,
 					row: startRow + events.length,
 					end: timestampRow.get(v.end)!,
+					duration: () => (v.end !== null ? v.end - v.start : durationNow(v.start)),
 				})),
 			};
 		})
@@ -125,9 +131,9 @@ function getUniqueSortedTimestamps<E, A, I>(
 	const timestampSet = new Set<number>();
 	events.forEach((v) => timestampSet.add(v.time));
 	activities.forEach((v) => timestampSet.add(v.start));
-	activities.forEach((v) => timestampSet.add(v.end));
+	activities.forEach((v) => v.end !== null && timestampSet.add(v.end));
 	intervals.forEach((v) => timestampSet.add(v.start));
-	intervals.forEach((v) => timestampSet.add(v.end));
+	intervals.forEach((v) => v.end !== null && timestampSet.add(v.end));
 	return timestampSet.keys().toArray().sort();
 }
 
@@ -184,21 +190,18 @@ export function dummyData(): {
 			{
 				start: new Date('2026-03-08T19:24:00').valueOf(),
 				end: new Date('2026-03-08T19:31:10').valueOf(),
-				duration: toMillis(0, 7, 10),
 				label: 'Activity1',
 				ref: null,
 			},
 			{
 				start: new Date('2026-03-08T19:26:30').valueOf(),
 				end: new Date('2026-03-08T19:31:10').valueOf(),
-				duration: toMillis(0, 4, 40),
 				label: 'Activity1',
 				ref: null,
 			},
 			{
 				start: new Date('2026-03-08T19:25:15').valueOf(),
 				end: new Date('2026-03-08T19:28:15').valueOf(),
-				duration: toMillis(0, 3, 0),
 				label: 'Activity3',
 				ref: null,
 			},
@@ -207,13 +210,11 @@ export function dummyData(): {
 			{
 				start: new Date('2026-03-08T19:24:00').valueOf(),
 				end: new Date('2026-03-08T19:26:30').valueOf(),
-				duration: toMillis(0, 2, 30),
 				ref: null,
 			},
 			{
 				start: new Date('2026-03-08T19:26:30').valueOf(),
 				end: new Date('2026-03-08T19:31:10').valueOf(),
-				duration: toMillis(0, 4, 40),
 				ref: null,
 			},
 		],

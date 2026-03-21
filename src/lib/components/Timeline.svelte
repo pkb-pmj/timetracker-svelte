@@ -46,7 +46,7 @@
 				<span class="label">{o.label}</span>
 			</div>
 			<div class="label-background right" style:grid-column-end="lane-end {o.lane}">
-				<span class="duration">{formatDuration(o.duration)}</span>
+				<span class="duration">{formatDuration(o.duration())}</span>
 			</div>
 		</div>
 		<div
@@ -66,7 +66,7 @@
 
 {#snippet timelineInterval(o: IntervalOut<unknown>)}
 	<li class="interval">
-		<span class="duration" style:grid-row={o.row}>{formatDuration(o.duration)}</span>
+		<span class="duration" style:grid-row={o.row}>{formatDuration(o.duration())}</span>
 		<div class="line-container" style:grid-row-start={o.start} style:grid-row-end={o.end + 1}>
 			<div class="line start"></div>
 			{#if o.end - o.start > 1}
