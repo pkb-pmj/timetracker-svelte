@@ -18,7 +18,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.createTable('activities')
 		.addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
 		.addColumn('start_time', 'integer', (col) => col.notNull())
-		.addColumn('end_time', 'integer', (col) => col.notNull())
+		.addColumn('end_time', 'integer')
 		.addColumn('node_id', 'integer', (col) => col.references('nodes.id').notNull())
 		.execute();
 }

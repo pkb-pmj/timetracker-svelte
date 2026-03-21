@@ -14,7 +14,7 @@ export interface Event {
 export interface Activity {
 	id: Generated<number>;
 	start_time: number;
-	end_time: number;
+	end_time: number | null;
 	node_id: number;
 }
 
