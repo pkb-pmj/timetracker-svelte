@@ -27,75 +27,33 @@ async function getActivities(q: QueryCreator<DB>) {
 
 async function getIntervals(q: QueryCreator<DB>) {
 	return await q
-		.selectFrom('intervals')
-		.innerJoin('nodes as start_node', 'start_node.id', 'intervals.start_node_id')
-		.innerJoin('nodes as end_node', 'end_node.id', 'intervals.end_node_id')
-		.select([
-			'intervals.id',
-			'intervals.start_time as startTime',
-			'intervals.end_time as endTime',
-			'start_node.name as startName',
-			'end_node.name as endName',
+		.selectFrom('events')
+		.select(({ fn, ref }) => [
+			'id',
+			'time as startTime',
+			fn
+				.agg<number | null>('lead', [ref('time')])
+				.over((ob) => ob.orderBy('time', 'asc'))
+				.as('endTime'),
 		])
-		.orderBy('intervals.start_time', 'asc')
+		.orderBy('startTime', 'asc')
 		.execute();
-}
-
-async function getIntervalRanges(q: QueryCreator<DB>) {
-	return await q
-		.selectFrom('intervals')
-		.select(['id', 'start_time as startTime', 'end_time as endTime'])
-		.orderBy('start_time', 'asc')
-		.execute();
-}
-
-async function getIntervalEndpoints(q: QueryCreator<DB>) {
-	const starts = q
-		.selectFrom('nodes')
-		.innerJoin('intervals', 'intervals.start_node_id', 'nodes.id')
-		.select([
-			'nodes.id as nodeId',
-			// 'intervals.id',
-			'intervals.start_time as time',
-			'nodes.name as name',
-		]);
-	const ends = q
-		.selectFrom('nodes')
-		.innerJoin('intervals', 'intervals.end_node_id', 'nodes.id')
-		.select([
-			'nodes.id as nodeId',
-			// 'intervals.id',
-			'intervals.end_time as time',
-			'nodes.name as name',
-		]);
-	return await starts.union(ends).orderBy('time', 'asc').execute();
 }
 
 export async function getItems(): Promise<ItemsIn<number, number, number>> {
-	const { events, activities, intervalRanges, intervalEndpoints } = await db
-		.transaction()
-		.execute(async (tx) => ({
-			events: await getEvents(tx),
-			activities: await getActivities(tx),
-			intervalRanges: await getIntervalRanges(tx),
-			intervalEndpoints: await getIntervalEndpoints(tx),
-		}));
+	const { events, activities, intervals } = await db.transaction().execute(async (tx) => ({
+		events: await getEvents(tx),
+		activities: await getActivities(tx),
+		intervals: await getIntervals(tx),
+	}));
 
 	return {
-		events: [
-			...events.map((o) => ({
-				time: o.time,
-				label: o.name,
-				ref: o.id,
-			})),
-			// TODO: handle end/start interval ids better (= at all)
-			...intervalEndpoints.map((o) => ({
-				time: o.time,
-				label: o.name,
-				ref: o.nodeId,
-			})),
-		].sort((a, b) => a.time - b.time),
-		intervals: intervalRanges.map((o) => ({
+		events: events.map((o) => ({
+			time: o.time,
+			label: o.name,
+			ref: o.id,
+		})),
+		intervals: intervals.map((o) => ({
 			start: o.startTime,
 			end: o.endTime,
 			ref: o.id,
