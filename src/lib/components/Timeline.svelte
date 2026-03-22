@@ -19,8 +19,6 @@
 	}
 
 	let { timeline, numLanes, numRows } = $derived(createTimeline(events, activities, intervals));
-
-	$inspect(timeline);
 </script>
 
 {#snippet timelineEvent(o: EventOut<unknown>)}
