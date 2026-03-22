@@ -44,7 +44,7 @@
 			<div class="label-background left">
 				<span class="label">{o.label}</span>
 			</div>
-			<div class="label-background right" style:grid-column-end="lane-end {o.lane}">
+			<div class="label-background right" style:grid-column-end="lane-end {-o.lane}">
 				<span class="duration">{formatDuration(o.duration())}</span>
 			</div>
 		</div>
@@ -52,8 +52,8 @@
 			class="line-container"
 			style:grid-row-start={o.start}
 			style:grid-row-end={o.end + 1}
-			style:grid-column-start="lane-start {o.lane}"
-			style:grid-column-end="lane-end {o.lane}"
+			style:grid-column-start="lane-start {-o.lane}"
+			style:grid-column-end="lane-end {-o.lane}"
 		>
 			{#if o.end - o.start > 1}
 				<div class="line middle"></div>
