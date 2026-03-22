@@ -4,6 +4,10 @@
 	import type { Attachment } from 'svelte/attachments';
 	import Modal from './Modal.svelte';
 
+	export function open() {
+		modal?.open();
+	}
+
 	let {
 		onPicked,
 		createNode,
@@ -88,7 +92,6 @@
 	}
 </script>
 
-<button class="open" onclick={() => modal?.open()}>{selected?.name ?? 'select'}</button>
 <Modal bind:this={modal} id="NodePicker" {onClose}>
 	<div class="combobox">
 		<!-- svelte-ignore a11y_autofocus -->
@@ -170,14 +173,6 @@
 	/* Active (== selected) (arrow-key focus) */
 	li[aria-selected='true'] {
 		background: rgba(0, 0, 0, 0.12);
-	}
-
-	button.open:disabled {
-		opacity: 0.5;
-	}
-
-	button.open:not(:disabled) {
-		font-weight: 500;
 	}
 
 	span.id {
