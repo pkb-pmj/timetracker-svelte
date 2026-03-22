@@ -4,6 +4,11 @@
 	import { getItems } from '$lib/db/queries';
 	import Timeline from './Timeline.svelte';
 
+	async function createNode(name: string) {
+		return (await db.insertInto('nodes').values({ name }).returning('id').executeTakeFirstOrThrow())
+			.id;
+	}
+
 	async function createEvent(node_id: number) {
 		await db
 			.insertInto('events')
@@ -42,8 +47,8 @@
 
 <div class="container">
 	<Timeline {events} {activities} {intervals} />
-	<span>Event: <NodePicker onPicked={createEvent} /></span>
-	<span>Start Activity: <NodePicker onPicked={createActivity} /></span>
+	<span>Event: <NodePicker onPicked={createEvent} {createNode} /></span>
+	<span>Start Activity: <NodePicker onPicked={createActivity} {createNode} /></span>
 	<button onclick={finishAllActivities}>End All Activities</button>
 </div>
 

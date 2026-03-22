@@ -4,7 +4,10 @@
 	import type { Attachment } from 'svelte/attachments';
 	import Modal from './Modal.svelte';
 
-	let { onPicked }: { onPicked: (id: number) => void } = $props();
+	let {
+		onPicked,
+		createNode,
+	}: { onPicked: (id: number) => void; createNode: (name: string) => Promise<number> } = $props();
 
 	let query = $state('');
 	let debouncedQuery = $state('');
@@ -78,9 +81,14 @@
 	}
 
 	let modal: Modal | null = null;
+
+	async function onCreateNew() {
+		onPicked(await createNode(query));
+		modal?.close();
+	}
 </script>
 
-<button onclick={() => modal?.open()}>{selected?.name ?? 'select'}</button>
+<button class="open" onclick={() => modal?.open()}>{selected?.name ?? 'select'}</button>
 <Modal bind:this={modal} id="NodePicker" {onClose}>
 	<div class="combobox">
 		<!-- svelte-ignore a11y_autofocus -->
@@ -115,6 +123,7 @@
 				</li>
 			{:else}
 				<span class="no-elements">No matching options</span>
+				<button class="create" onclick={onCreateNew}>Create new node: {query}</button>
 			{/each}
 		</ul>
 	</div>
@@ -163,11 +172,11 @@
 		background: rgba(0, 0, 0, 0.12);
 	}
 
-	button:disabled {
+	button.open:disabled {
 		opacity: 0.5;
 	}
 
-	button:not(:disabled) {
+	button.open:not(:disabled) {
 		font-weight: 500;
 	}
 
@@ -181,5 +190,15 @@
 		font-style: italic;
 		display: block;
 		padding: 0.5rem 1rem;
+	}
+
+	button.create {
+		background: white;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid green;
+		font-size: 1rem;
+		width: 100%;
+		text-align: left;
 	}
 </style>
