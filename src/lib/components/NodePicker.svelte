@@ -5,7 +5,7 @@
 	import Modal from './Modal.svelte';
 
 	export function open() {
-		modal?.open();
+		modal.open();
 	}
 
 	let {
@@ -62,7 +62,7 @@
 	function selectOption(id: number) {
 		activeId = id;
 		selected = nodes.find((node) => node.id === id) ?? null;
-		modal?.close();
+		modal.close();
 		onPicked(id);
 	}
 
@@ -84,11 +84,11 @@
 		query = '';
 	}
 
-	let modal: Modal | null = null;
+	let modal: Modal;
 
 	async function onCreateNew() {
 		onPicked(await createNode(query));
-		modal?.close();
+		modal.close();
 	}
 </script>
 

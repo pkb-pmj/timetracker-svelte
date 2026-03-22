@@ -4,11 +4,12 @@
 
 	let { id, children, onClose }: { id: string; children: any; onClose?: () => void } = $props();
 
-	let dialogEl = $state<HTMLDialogElement | null>(null);
+	// used only inside user-triggered functions and $effect, which runs after mount, so should be safe without null
+	let dialogEl: HTMLDialogElement;
 	let isOpen = $state(false);
 
 	function onClickOutside(e: MouseEvent) {
-		if (e.target === dialogEl) dialogEl?.close();
+		if (e.target === dialogEl) dialogEl.close();
 	}
 
 	// TODO: a less hacky way to do this..? And be careful when integrating this with other modals
@@ -18,16 +19,16 @@
 		// this prevents duplicate entries and allows closing modal on 1st "back", not 2nd
 		if (page.state.modal !== id) pushState('', { modal: id });
 		isOpen = true;
-		dialogEl?.showModal();
+		dialogEl.showModal();
 	}
 
 	export function close() {
-		dialogEl?.close();
+		dialogEl.close();
 	}
 
 	$effect(() => {
 		// only close on "back", don't open on "forward"
-		if (page.state.modal !== id) dialogEl?.close();
+		if (page.state.modal !== id) dialogEl.close();
 	});
 
 	function onclose() {
